@@ -1,0 +1,1 @@
+{"builds": [{"src": "package.json", "use": "@vercel/next"}], "routes": [{"src": "/(.*)", "dest": "/"}], "env": {"NODE_ENV": "production"}, "functions": {"src/app/api/**/*.ts": {"runtime": "nodejs18.x"}}, "outputDirectory": ".next", "installCommand": "npm install", "devCommand": "npm run dev"}
