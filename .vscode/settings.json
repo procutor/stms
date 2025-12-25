@@ -1,0 +1,24 @@
+{
+    "git.ignoreLimitWarning": true,
+    "prisma.pinToPrisma6": true,
+    "css.validate": true,
+    "css.customData": [
+        ".vscode/css-custom-data.json"
+    ],
+    "tailwindCSS.includeLanguages": {
+        "typescript": "javascript",
+        "typescriptreact": "javascript"
+    },
+    "editor.quickSuggestions": {
+        "strings": true
+    },
+    "emmet.includeLanguages": {
+        "typescript": "html",
+        "typescriptreact": "html"
+    },
+    "typescript.preferences.includePackageJsonAutoImports": "on",
+    "typescript.suggest.autoImports": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "json.validate.enable": false,
+    "json.format.enable": true
+}

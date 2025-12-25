@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  name               String
+  password           String
+  role               String // SUPER_ADMIN, SCHOOL_ADMIN, TEACHER
+  schoolId           String?
+  school             School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  isActive           Boolean  @default(true)
+  maxWeeklyHours     Int?
+  teachingStreams    String? // PRIMARY, SECONDARY, TSS, SECONDARY_AND_TSS
+  unavailableDays    String? // JSON array of days: ["MONDAY", "WEDNESDAY"]
+  unavailablePeriods String? // JSON array of period IDs
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  teacherSubjects      TeacherSubject[]
+  trainerModules       TrainerModule[]
+  teacherClassSubjects TeacherClassSubject[]
+  trainerClassModules  TrainerClassModule[]
+  timetablesAsTeacher  Timetable[]           @relation("TeacherTimetables")
+
+  @@map("users")
+}
+
+model School {
+  id         String    @id @default(cuid())
+  name       String
+  type       String // PRIMARY, SECONDARY, TSS
+  address    String?
+  province   String? // Province or City
+  district   String? // District
+  sector     String? // Sector
+  email      String    @unique
+  phone      String?
+  status     String    @default("PENDING") // PENDING, APPROVED, REJECTED, INACTIVE
+  approvedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relations
+  users                User[]
+  classes              Class[]
+  subjects             Subject[]
+  modules              Module[]
+  timeSlots            TimeSlot[]
+  timetables           Timetable[]
+  teacherClassSubjects TeacherClassSubject[]
+  trainerClassModules  TrainerClassModule[]
+
+  @@map("schools")
+}
+
+model Class {
+  id        String   @id @default(cuid())
+  name      String
+  level     String?
+  stream    String?
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  subjects             ClassSubject[]
+  timetables           Timetable[]
+  teacherClassSubjects TeacherClassSubject[]
+  trainerClassModules  TrainerClassModule[]
+
+  @@unique([schoolId, level, stream])
+  @@map("classes")
+}
+
+model Subject {
+  id             String   @id @default(cuid())
+  name           String
+  code           String?
+  level          String?
+  periodsPerWeek Int
+  schoolId       String
+  school         School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  teachers             TeacherSubject[]
+  classSubjects        ClassSubject[]
+  timetables           Timetable[]
+  teacherClassSubjects TeacherClassSubject[]
+
+  @@unique([schoolId, name, level])
+  @@map("subjects")
+}
+
+model Module {
+  id         String   @id @default(cuid())
+  name       String
+  code       String?
+  level      String?
+  trade      String? // Trade field for TSS modules
+  totalHours Int // Total hours per week for TSS
+  category   String // SPECIFIC, GENERAL, COMPLEMENTARY
+  blockSize  Int      @default(1) // Number of consecutive periods required (1-3 for TSS)
+  schoolId   String
+  school     School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  trainers            TrainerModule[]
+  timetables          Timetable[]
+  trainerClassModules TrainerClassModule[]
+
+  @@unique([schoolId, name, level])
+  @@map("modules")
+}
+
+model TeacherSubject {
+  id        String @id @default(cuid())
+  teacherId String
+  subjectId String
+
+  teacher User    @relation(fields: [teacherId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([teacherId, subjectId])
+  @@map("teacher_subjects")
+}
+
+model TrainerModule {
+  id        String @id @default(cuid())
+  trainerId String
+  moduleId  String
+
+  trainer User   @relation(fields: [trainerId], references: [id])
+  module  Module @relation(fields: [moduleId], references: [id])
+
+  @@unique([trainerId, moduleId])
+  @@map("trainer_modules")
+}
+
+model ClassSubject {
+  id        String @id @default(cuid())
+  classId   String
+  subjectId String
+
+  class   Class   @relation(fields: [classId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([classId, subjectId])
+  @@map("class_subjects")
+}
+
+model TimeSlot {
+  id        String   @id @default(cuid())
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  day       String // MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY
+  period    Int
+  name      String // P1, P2, Break, Assembly, etc.
+  startTime DateTime
+  endTime   DateTime
+  session   String // MORNING, AFTERNOON
+  isBreak   Boolean  @default(false) // True for breaks, false for teaching periods
+  breakType String? // ASSEMBLY, MORNING_BREAK, LUNCH_BREAK, AFTERNOON_BREAK, END_OF_DAY
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  timetables Timetable[]
+
+  @@unique([schoolId, day, period])
+  @@map("time_slots")
+}
+
+model Timetable {
+  id         String  @id @default(cuid())
+  schoolId   String
+  classId    String
+  teacherId  String
+  subjectId  String?
+  moduleId   String?
+  timeSlotId String
+
+  school   School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  class    Class    @relation(fields: [classId], references: [id])
+  teacher  User     @relation("TeacherTimetables", fields: [teacherId], references: [id])
+  subject  Subject? @relation(fields: [subjectId], references: [id])
+  module   Module?  @relation(fields: [moduleId], references: [id])
+  timeSlot TimeSlot @relation(fields: [timeSlotId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, classId, timeSlotId])
+  @@map("timetables")
+}
+
+model TeacherClassSubject {
+  id        String @id @default(cuid())
+  teacherId String
+  classId   String
+  subjectId String
+  schoolId  String
+
+  teacher User    @relation(fields: [teacherId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+  school  School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teacherId, classId, subjectId])
+  @@map("teacher_class_subjects")
+}
+
+model TrainerClassModule {
+  id        String @id @default(cuid())
+  trainerId String
+  classId   String
+  moduleId  String
+  schoolId  String
+
+  trainer User   @relation(fields: [trainerId], references: [id])
+  class   Class  @relation(fields: [classId], references: [id])
+  module  Module @relation(fields: [moduleId], references: [id])
+  school  School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([trainerId, classId, moduleId])
+  @@map("trainer_class_modules")
+}

@@ -1,0 +1,201 @@
+/* Ultra-minimal A4 print-specific styles */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 3mm;
+  }
+
+  /* Hide everything except the compact timetable when printing */
+  body.print-mode #__next > *:not(#compact-timetable) {
+    display: none !important;
+  }
+
+  /* Ensure compact timetable fills the entire page */
+  #compact-timetable {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 1mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    height: 291mm !important;
+  }
+
+  /* Ultra-minimal table styles for print */
+  .print-compact-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 4px;
+    line-height: 0.6;
+  }
+
+  .print-compact-table th,
+  .print-compact-table td {
+    border: 0.3px solid #000;
+    padding: 0.2px;
+    text-align: center;
+    vertical-align: middle;
+    height: 6mm;
+  }
+
+  .print-compact-table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    font-size: 4px;
+    height: 5mm;
+  }
+
+  .print-compact-table .period-cell {
+    background-color: #f8f8f8;
+    font-weight: 500;
+    font-size: 4px;
+  }
+
+  .print-compact-table .subject-cell {
+    font-size: 3px;
+    line-height: 0.5;
+  }
+
+  /* Ultra-minimal day headers */
+  .print-day-header {
+    font-size: 4px !important;
+    font-weight: bold;
+    padding: 0.3mm !important;
+  }
+
+  /* Ultra-minimal period cells */
+  .print-period-cell {
+    font-size: 3px !important;
+    padding: 0.2mm !important;
+    height: 6mm !important;
+  }
+
+  /* Color coding for print - lighter shades */
+  .print-specific { background-color: #f0f8ff !important; }
+  .print-general { background-color: #f0fff0 !important; }
+  .print-complementary { background-color: #f8f0ff !important; }
+
+  /* Hide interactive elements when printing */
+  button, .no-print {
+    display: none !important;
+  }
+
+  /* Ensure text is crisp for printing */
+  * {
+    -webkit-print-color-adjust: exact;
+    color-adjust: exact;
+  }
+
+  /* Force page breaks control */
+  .compact-a4-container {
+    page-break-inside: avoid;
+    page-break-after: avoid;
+  }
+}
+
+/* Ultra-minimal screen styles for A4 view */
+.compact-a4-container {
+  width: 210mm;
+  height: 297mm;
+  margin: 0 auto;
+  background: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  font-size: 5px;
+  line-height: 0.8;
+  padding: 2mm;
+}
+
+.compact-a4-header {
+  text-align: center;
+  border-bottom: 0.5px solid #374151;
+  padding: 1mm;
+  margin-bottom: 1mm;
+}
+
+.compact-a4-title {
+  font-size: 10px;
+  font-weight: bold;
+  color: #111827;
+  margin-bottom: 0.5mm;
+}
+
+.compact-a4-subtitle {
+  font-size: 6px;
+  color: #6b7280;
+}
+
+.compact-a4-grid {
+  display: grid;
+  grid-template-columns: 12mm repeat(5, 1fr);
+  border: 0.3px solid #6b7280;
+  background: white;
+}
+
+.compact-a4-header-cell {
+  padding: 0.5mm;
+  text-align: center;
+  font-weight: bold;
+  font-size: 5px;
+  background-color: #f3f4f6;
+  border-right: 0.3px solid #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8mm;
+}
+
+.compact-a4-period-cell {
+  padding: 0.3mm;
+  text-align: center;
+  font-size: 5px;
+  font-weight: 500;
+  background-color: #f9fafb;
+  border-right: 0.3px solid #6b7280;
+  border-top: 0.3px solid #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8mm;
+}
+
+.compact-a4-subject-cell {
+  padding: 0.2mm;
+  border-right: 0.3px solid #6b7280;
+  border-top: 0.3px solid #6b7280;
+  font-size: 4px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 8mm;
+}
+
+.compact-a4-legend {
+  margin-top: 1mm;
+  padding-top: 0.5mm;
+  border-top: 0.3px solid #d1d5db;
+  text-align: center;
+  font-size: 4px;
+}
+
+.compact-a4-footer {
+  text-align: center;
+  margin-top: 1mm;
+  padding-top: 0.5mm;
+  border-top: 0.3px solid #e5e7eb;
+  font-size: 4px;
+  color: #6b7280;
+}
+
+/* A4 page size indicator for testing */
+.a4-page-indicator {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 10px;
+  z-index: 1000;
+}

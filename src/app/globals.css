@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .btn-primary {
+        @apply bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md font-medium transition-colors;
+    }
+
+    .btn-secondary {
+        @apply bg-gray-200 text-gray-900 hover:bg-gray-300 px-4 py-2 rounded-md font-medium transition-colors;
+    }
+
+    .btn-destructive {
+        @apply bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md font-medium transition-colors;
+    }
+
+    .input {
+        @apply flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .card {
+        @apply rounded-lg border border-gray-200 bg-white shadow-sm;
+    }
+
+    .card-header {
+        @apply flex flex-col space-y-1.5 p-6;
+    }
+
+    .card-title {
+        @apply text-2xl font-semibold leading-none tracking-tight;
+    }
+
+    .card-description {
+        @apply text-sm text-gray-600;
+    }
+
+    .card-content {
+        @apply p-6 pt-0;
+    }
+
+    .timetable-grid {
+        @apply grid gap-1;
+        grid-template-columns: 80px repeat(6, 1fr);
+    }
+
+    .timetable-header {
+        @apply bg-gray-100 p-2 text-center font-medium text-sm border border-gray-200;
+    }
+
+    .timetable-cell {
+        @apply bg-white p-2 text-center text-sm border border-gray-200 min-h-[60px] flex items-center justify-center;
+    }
+
+    .timetable-cell.occupied {
+        @apply bg-blue-50 text-blue-900 font-medium;
+    }
+
+    .timetable-cell.specific {
+        @apply bg-red-100 text-red-900;
+    }
+
+    .timetable-cell.general {
+        @apply bg-yellow-100 text-yellow-900;
+    }
+
+    .timetable-cell.complementary {
+        @apply bg-green-100 text-green-900;
+    }
+
+    .conflict-indicator {
+        @apply bg-red-200 text-red-800 border border-red-300;
+    }
+}

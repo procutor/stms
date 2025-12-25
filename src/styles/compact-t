@@ -1,0 +1,163 @@
+/* Print-specific styles for A4 timetables */
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  /* Hide everything except the compact timetable when printing */
+  body.print-mode #__next > *:not(#compact-timetable) {
+    display: none !important;
+  }
+
+  /* Ensure compact timetable fills the entire page */
+  #compact-timetable {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Compact table styles for print */
+  .print-compact-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8px;
+    line-height: 1.1;
+  }
+
+  .print-compact-table th,
+  .print-compact-table td {
+    border: 1px solid #000;
+    padding: 2px;
+    text-align: center;
+    vertical-align: middle;
+    height: 16px;
+  }
+
+  .print-compact-table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    font-size: 7px;
+  }
+
+  .print-compact-table .period-cell {
+    background-color: #f8f8f8;
+    font-weight: 500;
+    font-size: 7px;
+  }
+
+  .print-compact-table .subject-cell {
+    font-size: 6px;
+    line-height: 1.0;
+  }
+
+  /* Color coding for print */
+  .print-specific { background-color: #e6f2ff !important; }
+  .print-general { background-color: #e6ffe6 !important; }
+  .print-complementary { background-color: #f0e6ff !important; }
+
+  /* Hide interactive elements when printing */
+  button, .no-print {
+    display: none !important;
+  }
+
+  /* Ensure text is crisp for printing */
+  * {
+    -webkit-print-color-adjust: exact;
+    color-adjust: exact;
+  }
+}
+
+/* Screen styles for compact view */
+.compact-a4-container {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  background: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.compact-a4-header {
+  text-align: center;
+  border-bottom: 2px solid #374151;
+  padding: 8px;
+  margin-bottom: 12px;
+}
+
+.compact-a4-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.compact-a4-subtitle {
+  font-size: 10px;
+  color: #6b7280;
+}
+
+.compact-a4-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(5, 1fr);
+  border: 1px solid #6b7280;
+  background: white;
+}
+
+.compact-a4-header-cell {
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 9px;
+  background-color: #f3f4f6;
+  border-right: 1px solid #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compact-a4-period-cell {
+  padding: 4px;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 500;
+  background-color: #f9fafb;
+  border-right: 1px solid #6b7280;
+  border-top: 1px solid #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compact-a4-subject-cell {
+  padding: 2px;
+  border-right: 1px solid #6b7280;
+  border-top: 1px solid #6b7280;
+  font-size: 7px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 18px;
+}
+
+.compact-a4-legend {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #d1d5db;
+  text-align: center;
+  font-size: 8px;
+}
+
+.compact-a4-footer {
+  text-align: center;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 8px;
+  color: #6b7280;
+}
