@@ -1,1 +1,0 @@
-{"routes": [{"src": "/(.*)", "dest": "/"}], "env": {"NODE_ENV": "production"}, "outputDirectory": ".next", "installCommand": "npm install", "devCommand": "npm run dev"}
