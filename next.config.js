@@ -3,6 +3,10 @@ const nextConfig = {
     images: {
         domains: ['lh3.googleusercontent.com'],
     },
+    experimental: {
+        serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
+    },
+    output: 'standalone',
 }
 
 module.exports = nextConfig
