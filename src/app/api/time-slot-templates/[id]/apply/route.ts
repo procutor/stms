@@ -49,7 +49,7 @@ export async function POST(
             )
         }
 
-        const schoolId = session.user.schoolId as string
+        const schoolId = session.user.schoolId!
 
         // Apply template to school
         const result = await db.$transaction(async (tx) => {

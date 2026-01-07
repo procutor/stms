@@ -11,16 +11,11 @@ export async function GET(request: NextRequest) {
         }
 
         const { searchParams } = new URL(request.url)
-        const schoolType = searchParams.get('schoolType')
         const isGlobal = searchParams.get('isGlobal')
         const isActive = searchParams.get('isActive')
 
         // Build where clause
         const where: any = {}
-        
-        if (schoolType) {
-            where.schoolType = schoolType
-        }
         
         if (isGlobal !== null && isGlobal !== undefined) {
             where.isGlobal = isGlobal === 'true'
@@ -46,13 +41,6 @@ export async function GET(request: NextRequest) {
                         { day: 'asc' },
                         { orderIndex: 'asc' }
                     ]
-                },
-                creator: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
-                    }
                 },
                 school: {
                     select: {
@@ -88,7 +76,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json()
-        const { name, description, schoolType, isGlobal, slots } = body
+        const { name, description, isGlobal, slots } = body
 
         // Validate required fields
         if (!name || !slots || !Array.isArray(slots) || slots.length === 0) {
@@ -115,9 +103,7 @@ export async function POST(request: NextRequest) {
                 data: {
                     name,
                     description: description || null,
-                    schoolType: schoolType || null,
                     isGlobal: isGlobal || false,
-                    createdBy: session.user.id,
                     schoolId: session.user.schoolId
                 }
             })

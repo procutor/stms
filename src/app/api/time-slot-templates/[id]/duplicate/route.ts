@@ -56,9 +56,7 @@ export async function POST(
                 data: {
                     name: name || `${existingTemplate.name} (Copy)`,
                     description: description || existingTemplate.description,
-                    schoolType: existingTemplate.schoolType,
                     isGlobal: false, // Duplicated templates are always school-specific
-                    createdBy: session.user.id,
                     schoolId: session.user.schoolId
                 }
             })

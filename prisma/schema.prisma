@@ -57,6 +57,7 @@ model School {
   timetables           Timetable[]
   teacherClassSubjects TeacherClassSubject[]
   trainerClassModules  TrainerClassModule[]
+  timeSlotTemplates    TimeSlotTemplate[]
 
   @@map("schools")
 }
@@ -246,35 +247,36 @@ model TrainerClassModule {
 }
 
 model TimeSlotTemplate {
-  id        String   @id @default(cuid())
-  name      String
+  id          String   @id @default(cuid())
+  name        String
   description String?
-  schoolId  String?  // null for global templates
-  isGlobal  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  schoolId    String? // null for global templates
+  school      School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  isGlobal    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
-  slots     TimeSlotTemplateSlot[]
+  slots TimeSlotTemplateSlot[]
 
   @@map("time_slot_templates")
 }
 
 model TimeSlotTemplateSlot {
-  id         String   @id @default(cuid())
+  id         String           @id @default(cuid())
   templateId String
   template   TimeSlotTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  day        String   // MONDAY, TUESDAY, etc.
+  day        String // MONDAY, TUESDAY, etc.
   period     Int
-  orderIndex Int      @default(0)
-  name       String   // P1, P2, Break, etc.
-  startTime  String   // HH:mm format
-  endTime    String   // HH:mm format
-  session    String   // MORNING, AFTERNOON
-  isBreak    Boolean  @default(false)
-  breakType  String?  // ASSEMBLY, MORNING_BREAK, LUNCH_BREAK, etc.
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  orderIndex Int              @default(0)
+  name       String // P1, P2, Break, etc.
+  startTime  String // HH:mm format
+  endTime    String // HH:mm format
+  session    String // MORNING, AFTERNOON
+  isBreak    Boolean          @default(false)
+  breakType  String? // ASSEMBLY, MORNING_BREAK, LUNCH_BREAK, etc.
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
 
   @@unique([templateId, day, period])
   @@map("time_slot_template_slots")

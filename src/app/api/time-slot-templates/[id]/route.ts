@@ -22,13 +22,6 @@ export async function GET(
                         { orderIndex: 'asc' }
                     ]
                 },
-                creator: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
-                    }
-                },
                 school: {
                     select: {
                         id: true,
@@ -69,7 +62,7 @@ export async function PUT(
         }
 
         const body = await request.json()
-        const { name, description, schoolType, isGlobal, slots } = body
+        const { name, description, isGlobal, slots } = body
 
         // Check if template exists and user has permission
         const existingTemplate = await db.timeSlotTemplate.findUnique({
@@ -93,7 +86,6 @@ export async function PUT(
                 data: {
                     name: name || existingTemplate.name,
                     description: description !== undefined ? description : existingTemplate.description,
-                    schoolType: schoolType !== undefined ? schoolType : existingTemplate.schoolType,
                     isGlobal: isGlobal !== undefined ? isGlobal : existingTemplate.isGlobal,
                     updatedAt: new Date()
                 }
