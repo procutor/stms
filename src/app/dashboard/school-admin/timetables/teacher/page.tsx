@@ -181,10 +181,10 @@ export default function TeacherTimetables() {
         return { subjectName, className, isSubject, category }
     }
 
-    const getSubjectColor = (isSubject: boolean, category: string) => {
+    const getSubjectColor = (isSubject: boolean, category: string, subjectName: string) => {
         if (isSubject) {
             // Subject colors
-            const subjectColors = {
+            const subjectColors: Record<string, string> = {
                 'MATHEMATICS': 'bg-blue-100 text-blue-800 border-blue-200',
                 'ENGLISH': 'bg-green-100 text-green-800 border-green-200',
                 'KINYARWANDA': 'bg-purple-100 text-purple-800 border-purple-200',
@@ -199,7 +199,7 @@ export default function TeacherTimetables() {
             return subjectColors[subjectName.toUpperCase()] || 'bg-gray-100 text-gray-800 border-gray-200'
         } else {
             // Module colors based on category
-            const moduleColors = {
+            const moduleColors: Record<string, string> = {
                 'TECHNICAL': 'bg-emerald-100 text-emerald-800 border-emerald-200',
                 'VOCATIONAL': 'bg-violet-100 text-violet-800 border-violet-200',
                 'GENERAL': 'bg-slate-100 text-slate-800 border-slate-200',
@@ -655,7 +655,7 @@ export default function TeacherTimetables() {
                                                                                             {cellData}
                                                                                         </div>
                                                                                     ) : (
-                                                                                        <div className={`rounded-lg border p-2 h-full flex flex-col justify-center items-center text-center transition-all duration-200 hover:shadow-sm ${getSubjectColor(cellData.isSubject, cellData.category)}`}>
+                                                                                        <div className={`rounded-lg border p-2 h-full flex flex-col justify-center items-center text-center transition-all duration-200 hover:shadow-sm ${getSubjectColor(cellData.isSubject, cellData.category, cellData.subjectName)}`}>
                                                                                             <div className="font-semibold text-xs leading-tight mb-1">
                                                                                                 {cellData.subjectName}
                                                                                             </div>
@@ -711,7 +711,7 @@ export default function TeacherTimetables() {
                                                                                             {cellData}
                                                                                         </div>
                                                                                     ) : (
-                                                                                        <div className={`rounded-lg border p-2 h-full flex flex-col justify-center items-center text-center transition-all duration-200 hover:shadow-sm ${getSubjectColor(cellData.isSubject, cellData.category)}`}>
+                                                                                        <div className={`rounded-lg border p-2 h-full flex flex-col justify-center items-center text-center transition-all duration-200 hover:shadow-sm ${getSubjectColor(cellData.isSubject, cellData.category, cellData.subjectName)}`}>
                                                                                             <div className="font-semibold text-xs leading-tight mb-1">
                                                                                                 {cellData.subjectName}
                                                                                             </div>
@@ -767,7 +767,7 @@ export default function TeacherTimetables() {
                                                                                             {cellData}
                                                                                         </div>
                                                                                     ) : (
-                                                                                        <div className={`rounded-lg border p-2 h-full flex flex-col justify-center items-center text-center transition-all duration-200 hover:shadow-sm ${getSubjectColor(cellData.isSubject, cellData.category)}`}>
+                                                                                        <div className={`rounded-lg border p-2 h-full flex flex-col justify-center items-center text-center transition-all duration-200 hover:shadow-sm ${getSubjectColor(cellData.isSubject, cellData.category, cellData.subjectName)}`}>
                                                                                             <div className="font-semibold text-xs leading-tight mb-1">
                                                                                                 {cellData.subjectName}
                                                                                             </div>
@@ -811,14 +811,27 @@ export default function TeacherTimetables() {
                                                                         </td>
                                                                         {DAYS.map(day => {
                                                                             const entry = timetableGrid[day]?.[period]
+                                                                            const cellData = getCellContent(entry)
+
                                                                             return (
                                                                                 <td
                                                                                     key={`${day}-${period}`}
-                                                                                    className="border border-gray-300 px-1 sm:px-2 py-3 text-center align-top print:px-1 print:py-2"
+                                                                                    className="border border-gray-200 px-1 sm:px-2 py-2 text-center align-top print:px-1 print:py-2 min-h-[60px]"
                                                                                 >
-                                                                                    <div className="text-xs leading-tight whitespace-pre-line">
-                                                                                        {getCellContent(entry)}
-                                                                                    </div>
+                                                                                    {typeof cellData === 'string' ? (
+                                                                                        <div className="text-xs leading-tight whitespace-pre-line text-gray-500 font-medium">
+                                                                                            {cellData}
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div className={`rounded-lg border p-2 h-full flex flex-col justify-center items-center text-center transition-all duration-200 hover:shadow-sm ${getSubjectColor(cellData.isSubject, cellData.category, cellData.subjectName)}`}>
+                                                                                            <div className="font-semibold text-xs leading-tight mb-1">
+                                                                                                {cellData.subjectName}
+                                                                                            </div>
+                                                                                            <div className="text-xs opacity-80 font-medium">
+                                                                                                {cellData.className}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    )}
                                                                                 </td>
                                                                             )
                                                                         })}
