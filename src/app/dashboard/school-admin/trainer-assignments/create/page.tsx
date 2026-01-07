@@ -3,11 +3,11 @@
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { 
-  Wrench, 
-  LogOut, 
-  ArrowLeft, 
-  Users, 
+import {
+  Wrench,
+  LogOut,
+  ArrowLeft,
+  Users,
   BookOpen,
   Plus,
   X,
@@ -21,6 +21,7 @@ import {
   Download,
   FileSpreadsheet,
   CheckCircle,
+  XCircle,
   RefreshCw
 } from 'lucide-react'
 import Link from 'next/link'
