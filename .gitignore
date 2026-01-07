@@ -51,3 +51,47 @@ logs
 # Temporary files
 *.tmp
 *.temp
+
+# Development scripts
+check-*.js
+create-*.js
+setup-*.js
+test-*.js
+debug-*.js
+fix-*.js
+clear-*.js
+query-*.js
+verify-*.js
+auto-setup-*.js
+
+# Deployment scripts
+deploy.sh
+server-deploy.sh
+deploy-database.js
+update_database.js
+cleanup-development-files.js
+
+# Reports and documentation (keep only README.md)
+*_REPORT.md
+*_GUIDE.md
+*_FIX_REPORT.md
+*_COMPLETION_REPORT.md
+AUTOMATIC_TIME_SLOT_PROVISIONING.md
+DYNAMIC_SYSTEM_IMPLEMENTATION_REPORT.md
+HOMEPAGE_REDESIGN_REPORT.md
+QUICK_DEPLOY.md
+TIME_SLOT_FIX_REPORT.md
+TIME_SLOTS_AUTOMATION_GUIDE.md
+VERCEL_404_TROUBLESHOOTING.md
+template-schema-additions.md
+test-schedule-verification.md
+
+# Temp files
+temp_homepage.html
+dev_output.txt
+
+# Database files
+prisma/dev.db
+
+# Plans directory
+plans/
