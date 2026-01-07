@@ -49,6 +49,8 @@ export async function POST(
             )
         }
 
+        const schoolId = session.user.schoolId as string
+
         // Apply template to school
         const result = await db.$transaction(async (tx) => {
             let deletedCount = 0
@@ -58,7 +60,7 @@ export async function POST(
             if (replaceExisting) {
                 const deleteResult = await tx.timeSlot.deleteMany({
                     where: {
-                        schoolId: session.user.schoolId
+                        schoolId: schoolId
                     }
                 })
                 deletedCount = deleteResult.count
@@ -69,7 +71,7 @@ export async function POST(
                 template.slots.map((slot) => 
                     tx.timeSlot.create({
                         data: {
-                            schoolId: session.user.schoolId,
+                            schoolId: schoolId,
                             day: slot.day,
                             period: slot.period,
                             name: slot.name,
