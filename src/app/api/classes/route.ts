@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const classSchema = z.object({
     name: z.string().min(2, 'Class name must be at least 2 characters'),
     level: z.string().min(1, 'Level is required'),
