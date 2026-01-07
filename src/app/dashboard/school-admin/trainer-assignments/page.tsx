@@ -3,14 +3,15 @@
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { 
-  Wrench, 
-  LogOut, 
-  ArrowLeft, 
-  Users, 
+import {
+  Wrench,
+  LogOut,
+  ArrowLeft,
+  Users,
   BookOpen,
   Plus,
-  Trash2
+  Trash2,
+  Upload
 } from 'lucide-react'
 import Link from 'next/link'
 
