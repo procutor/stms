@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const createSchema = z.object({
     classId: z.string(),
     subjectId: z.string()
