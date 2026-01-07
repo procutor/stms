@@ -1,6 +1,0 @@
-tree 19e468cbc05000c9b6c1607306b6a5ecac0219cf
-parent c6140c557b015a9458350c5c9603e667a0c5e2eb
-author sergemanzi250-lgtm <sergemanzi250@gmail.com> 1766660936 +0200
-committer sergemanzi250-lgtm <sergemanzi250@gmail.com> 1766660936 +0200
-
-feat: implement dynamic system with automatic time slot provisioning
