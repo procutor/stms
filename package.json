@@ -13,7 +13,8 @@
         "db:seed": "prisma db seed"
     },
     "prisma": {
-        "seed": "tsx prisma/seed.ts"
+        "seed": "tsx prisma/seed.ts",
+        "schema": "prisma/schema.prisma"
     },
     "dependencies": {
         "@hookform/resolvers": "3.3.4",
