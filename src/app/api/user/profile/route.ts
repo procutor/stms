@@ -35,7 +35,7 @@ export async function PUT(request: NextRequest) {
     const updatedUser = await db.user.update({
       where: { id: session.user.id },
       data: { name, email } as any,
-      select: { id: true, name: true, email: true, profilePhoto: true }
+      select: { id: true, name: true, email: true }
     })
 
     return NextResponse.json({
