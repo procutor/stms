@@ -5,6 +5,8 @@ import { generateTimetable, generateTimetableForClass, generateTimetableForTeach
 import { db } from '@/lib/db'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const generateSchema = z.object({
     classId: z.string().optional(),
     teacherId: z.string().optional(),
