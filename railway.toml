@@ -1,0 +1,20 @@
+[build]
+builder = "NIXPACKS"
+
+[build.buildCommand]
+command = "npx prisma db push --accept-data-loss && npm run build"
+
+[build.installCommand]
+command = "npm install"
+
+[deploy]
+startCommand = "npm start"
+
+[deploy.healthcheckPath]
+path = "/"
+
+[deploy.healthcheckTimeout]
+timeout = "300s"
+
+[deploy.restartPolicyType]
+type = "ON_FAILURE"

@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { generateTimetable, generateTimetableForClass } from '@/lib/timetable-generator'
 import { db } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
