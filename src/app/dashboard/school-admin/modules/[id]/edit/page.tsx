@@ -25,9 +25,9 @@ interface Module {
 
 export default function EditModule() {
     const { data: session, status } = useSession()
-    const router = useParams()
+    const params = useParams()
     const navigate = useRouter()
-    const moduleId = router.id as string
+    const moduleId = params!.id as string
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [formData, setFormData] = useState({
