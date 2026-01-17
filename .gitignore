@@ -73,3 +73,17 @@ prisma/dev.db
 
 # Plans directory
 plans/
+# Next.js
+.next/
+out/
+
+# Node
+node_modules/
+
+# Env
+.env
+.env.local
+
+# Logs
+*.log
+
