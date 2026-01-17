@@ -213,20 +213,20 @@ async function main() {
       { period: 2, start: '08:40', end: '09:20', session: 'MORNING', isBreak: false },
       { period: 3, start: '09:20', end: '10:00', session: 'MORNING', isBreak: false },
       // Morning break
-      { period: 0, start: '10:00', end: '10:20', session: 'MORNING', isBreak: true, breakType: 'MORNING_BREAK', name: 'MORNING BREAK' },
+      { period: -1, start: '10:00', end: '10:20', session: 'MORNING', isBreak: true, breakType: 'MORNING_BREAK', name: 'MORNING BREAK' },
       { period: 4, start: '10:20', end: '11:00', session: 'MORNING', isBreak: false },
       { period: 5, start: '11:00', end: '11:40', session: 'MORNING', isBreak: false },
       // Lunch break
-      { period: 0, start: '11:40', end: '13:10', session: 'AFTERNOON', isBreak: true, breakType: 'LUNCH_BREAK', name: 'LUNCH BREAK' },
+      { period: -2, start: '11:40', end: '13:10', session: 'AFTERNOON', isBreak: true, breakType: 'LUNCH_BREAK', name: 'LUNCH BREAK' },
       { period: 6, start: '13:10', end: '13:50', session: 'AFTERNOON', isBreak: false },
       { period: 7, start: '13:50', end: '14:30', session: 'AFTERNOON', isBreak: false },
       { period: 8, start: '14:30', end: '15:10', session: 'AFTERNOON', isBreak: false },
       // Afternoon break
-      { period: 0, start: '15:10', end: '15:30', session: 'AFTERNOON', isBreak: true, breakType: 'AFTERNOON_BREAK', name: 'AFTERNOON BREAK' },
+      { period: -3, start: '15:10', end: '15:30', session: 'AFTERNOON', isBreak: true, breakType: 'AFTERNOON_BREAK', name: 'AFTERNOON BREAK' },
       { period: 9, start: '15:30', end: '16:10', session: 'AFTERNOON', isBreak: false },
       { period: 10, start: '16:10', end: '16:50', session: 'AFTERNOON', isBreak: false },
       // End buffer
-      { period: 0, start: '16:50', end: '16:55', session: 'AFTERNOON', isBreak: true, breakType: 'END_OF_DAY', name: 'END OF DAY' }
+      { period: -4, start: '16:50', end: '16:55', session: 'AFTERNOON', isBreak: true, breakType: 'END_OF_DAY', name: 'END OF DAY' }
     ]
     
     for (const day of days) {
