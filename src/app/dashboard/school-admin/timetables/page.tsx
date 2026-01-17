@@ -90,8 +90,8 @@ export default function ViewTimetables() {
     const [pdfHistory, setPdfHistory] = useState<any[]>([])
 
     // Get filter params from URL
-    const teacherId = searchParams.get('teacherId')
-    const classId = searchParams.get('classId')
+    const teacherId = searchParams?.get('teacherId')
+    const classId = searchParams?.get('classId')
 
     useEffect(() => {
         if (session?.user) {
