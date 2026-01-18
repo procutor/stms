@@ -50,7 +50,7 @@ export async function createSchoolTimeSlots(schoolId: string) {
       {
         schoolId,
         day,
-        period: 0, // Use 0 for breaks
+        period: -1, // Use negative numbers for breaks
         name: 'School Assembly',
         startTime: new Date('1970-01-01T07:45:00'),
         endTime: new Date('1970-01-01T08:00:00'),
@@ -96,7 +96,7 @@ export async function createSchoolTimeSlots(schoolId: string) {
       {
         schoolId,
         day,
-        period: 0, // Use 0 for breaks
+        period: -2, // Use negative numbers for breaks
         name: 'Morning Break',
         startTime: new Date('1970-01-01T10:00:00'),
         endTime: new Date('1970-01-01T10:20:00'),
@@ -131,7 +131,7 @@ export async function createSchoolTimeSlots(schoolId: string) {
       {
         schoolId,
         day,
-        period: 0, // Use 0 for breaks
+        period: -3, // Use negative numbers for breaks
         name: 'Lunch Break',
         startTime: new Date('1970-01-01T11:40:00'),
         endTime: new Date('1970-01-01T13:10:00'),
@@ -177,7 +177,7 @@ export async function createSchoolTimeSlots(schoolId: string) {
       {
         schoolId,
         day,
-        period: 0, // Use 0 for breaks
+        period: -4, // Use negative numbers for breaks
         name: 'Afternoon Break',
         startTime: new Date('1970-01-01T15:10:00'),
         endTime: new Date('1970-01-01T15:30:00'),
