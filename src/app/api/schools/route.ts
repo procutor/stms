@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { createSchoolTimeSlots } from '@/lib/create-school-time-slots'
 
+export const dynamic = 'force-dynamic'
+
 const schoolRegistrationSchema = z.object({
     schoolName: z.string().min(2, 'School name must be at least 2 characters'),
     schoolType: z.string().min(1, 'School type is required'),
