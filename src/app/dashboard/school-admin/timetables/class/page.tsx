@@ -1,7 +1,9 @@
 import dynamicImport from 'next/dynamic'
 
-// Add this line to force dynamic rendering
+// Force dynamic rendering at the route level
 export const dynamic = 'force-dynamic'
+// Disable static generation
+export const revalidate = 0
 
 const ClassTimetablesClient = dynamicImport(() => import('./client'), { ssr: false })
 
