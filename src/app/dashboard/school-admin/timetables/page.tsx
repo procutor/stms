@@ -1,10 +1,7 @@
 import { Suspense } from 'react'
-import loadable from 'next/dynamic'
+import TimetablesClient from './client'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
-const TimetablesClient = loadable(() => import('./client'), { ssr: false })
 
 export default function Page() {
   return (
