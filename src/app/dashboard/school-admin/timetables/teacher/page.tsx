@@ -4,6 +4,7 @@ import { useSession, signOut } from 'next-auth/react'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'edge'
+export const revalidate = 0
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Calendar, LogOut, ArrowLeft, Download, Eye, Printer, FileText, Trash2, Grid, List, BookOpen, File, Clock, X, Search, Filter, User } from 'lucide-react'
