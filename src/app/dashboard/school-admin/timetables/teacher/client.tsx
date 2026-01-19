@@ -316,6 +316,7 @@ function TeacherTimetablesContent() {
                             {timetables.length > 0 && (
                                 <CSVGridExportButton
                                     entries={filteredTimetables.map(t => ({
+                                        id: t.id,
                                         day: t.timeSlot.day,
                                         period: t.timeSlot.period,
                                         startTime: t.timeSlot.startTime,
