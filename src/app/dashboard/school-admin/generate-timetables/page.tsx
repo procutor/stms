@@ -550,7 +550,6 @@ export default function GenerateTimetables() {
                                                                     <BatchPDFExportButton
                                                                         classTimetables={generatedTimetables}
                                                                         title={`${session.user.schoolName} Timetables - ${new Date().toLocaleDateString()}`}
-                                                                        schoolName={session.user.schoolName || undefined}
                                                                         onExportStart={() => console.log('PDF export started')}
                                                                         onExportComplete={() => console.log('PDF export completed')}
                                                                         onExportError={(error: any) => console.error('PDF export failed:', error)}
@@ -570,7 +569,6 @@ export default function GenerateTimetables() {
                                                                                 <SinglePDFExportButton
                                                                                     entries={timetable.entries}
                                                                                     title={`${timetable.className} Timetable`}
-                                                                                    schoolName={session.user.schoolName || undefined}
                                                                                     onExportStart={() => console.log(`Exporting ${timetable.className}...`)}
                                                                                     onExportComplete={() => console.log(`${timetable.className} downloaded!`)}
                                                                                     onExportError={(error: any) => console.error(`Export failed for ${timetable.className}:`, error)}
