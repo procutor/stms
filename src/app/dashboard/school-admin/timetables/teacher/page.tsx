@@ -1,11 +1,11 @@
-import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
+import loadable from 'next/dynamic'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'edge'
 
-const TeacherTimetablesClient = dynamic(() => import('./client'), { ssr: false })
+const TeacherTimetablesClient = loadable(() => import('./client'), { ssr: false })
 
 export default function Page() {
   return (
