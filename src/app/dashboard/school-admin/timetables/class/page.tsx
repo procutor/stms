@@ -1,6 +1,7 @@
 'use client'
 
 import { useSession, signOut } from 'next-auth/react'
+import { Suspense } from 'react'
 
 export const dynamic = 'force-dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -77,7 +78,7 @@ const BREAKS = [
     { name: 'AFTERNOON BREAK', start: '15:10', end: '15:30' }
 ]
 
-export default function ClassTimetables() {
+function ClassTimetablesContent() {
     const { data: session, status } = useSession()
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -275,6 +276,14 @@ export default function ClassTimetables() {
                     </button>
                 </div>
             </div>
+        )
+    }
+    
+    export default function ClassTimetables() {
+        return (
+            <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div>Loading...</div></div>}>
+                <ClassTimetablesContent />
+            </Suspense>
         )
     }
 

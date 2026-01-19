@@ -1,6 +1,7 @@
 'use client'
 
 import { useSession, signOut } from 'next-auth/react'
+import { Suspense } from 'react'
 
 export const dynamic = 'force-dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -76,7 +77,7 @@ const BREAKS = [
     { name: 'AFTERNOON BREAK', start: '15:10', end: '15:30' }
 ]
 
-export default function ViewTimetables() {
+function TimetablesContent() {
     const { data: session, status } = useSession()
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -169,13 +170,15 @@ export default function ViewTimetables() {
         return matchesDay && matchesClass && matchesTeacher
     })
 
-    const uniqueClasses = Array.from(new Set(timetables.map(t => t.classId))).map(classId =>
-        timetables.find(t => t.classId === classId)?.class
-    ).filter(Boolean)
+    const uniqueClasses: Array<{ id: string, name: string, level: string }> = Array.from(new Set(timetables.map(t => t.classId))).map(classId => {
+        const cls = timetables.find(t => t.classId === classId)?.class
+        return cls ? { id: classId, name: cls.name, level: cls.level } : null
+    }).filter(Boolean) as Array<{ id: string, name: string, level: string }>
 
-    const uniqueTeachers = Array.from(new Set(timetables.map(t => t.teacherId))).map(teacherId =>
-        timetables.find(t => t.teacherId === teacherId)?.teacher
-    ).filter(Boolean)
+    const uniqueTeachers: Array<{ id: string, name: string }> = Array.from(new Set(timetables.map(t => t.teacherId))).map(teacherId => {
+        const teacher = timetables.find(t => t.teacherId === teacherId)?.teacher
+        return teacher ? { id: teacherId, name: teacher.name } : null
+    }).filter(Boolean) as Array<{ id: string, name: string }>
 
     // Group timetables by class for list view
     const classTimetables = Array.from(new Set(timetables.map(t => t.classId))).map(classId => {
@@ -330,6 +333,415 @@ export default function ViewTimetables() {
                     .print\\:py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
                 }
             `}</style>
+            {/* Header */}
+            <header className="bg-white shadow no-print">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center py-6">
+                        <div className="flex items-center space-x-4">
+                            <Link
+                                href="/dashboard/school-admin"
+                                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+                            >
+                                <ArrowLeft className="h-5 w-5" />
+                                <span>Back to Dashboard</span>
+                            </Link>
+                            <div>
+                                <h1 className="text-3xl font-bold text-gray-900 flex items-center space-x-2">
+                                    <Calendar className="h-8 w-8" />
+                                    <span>Timetables</span>
+                                </h1>
+                                <p className="text-sm text-gray-600">
+                                    {session.user.schoolName} - View generated timetables
+                                    {teacherId && ` for ${timetables[0]?.teacher?.name || 'Teacher'}`}
+                                    {classId && ` for ${timetables[0]?.class?.name || 'Class'}`}
+                                </p>
+                                <div className="mt-2 flex space-x-4">
+                                    <Link
+                                        href="/dashboard/school-admin/timetables/class"
+                                        className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                                    >
+                                        <BookOpen className="h-4 w-4 mr-2" />
+                                        Class Timetables
+                                    </Link>
+                                    <Link
+                                        href="/dashboard/school-admin/timetables/teacher"
+                                        className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                                    >
+                                        <User className="h-4 w-4 mr-2" />
+                                        Teacher Timetables
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            {timetables.length > 0 && (
+                                <button
+                                    onClick={handleClearAllTimetables}
+                                    disabled={isClearing}
+                                    className="inline-flex items-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    {isClearing ? 'Clearing...' : 'Clear All Timetables'}
+                                </button>
+                            )}
+                            
+                            <button
+                                onClick={() => setViewMode(viewMode === 'regular' ? 'compact' : viewMode === 'compact' ? 'list' : 'regular')}
+                                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                            >
+                                {viewMode === 'regular' && <><FileText className="h-4 w-4 mr-2" />Compact A4 View</>}
+                                {viewMode === 'compact' && <><Grid className="h-4 w-4 mr-2" />List View</>}
+                                {viewMode === 'list' && <><FileText className="h-4 w-4 mr-2" />Regular View</>}
+                            </button>
+                            
+                            {timetables.length > 0 && (
+                                <SinglePDFExportButton
+                                    entries={filteredTimetables.map(t => ({
+                                        id: t.id,
+                                        day: t.timeSlot.day,
+                                        period: t.timeSlot.period,
+                                        startTime: t.timeSlot.startTime,
+                                        endTime: t.timeSlot.endTime,
+                                        class: t.class,
+                                        teacher: t.teacher,
+                                        subject: t.subject,
+                                        module: t.module
+                                    }))}
+                                    title={`${session.user.schoolName} - ${classId ? `Class Timetable - ${timetables[0]?.class?.name || 'Class'}` :
+                                                          teacherId ? `Teacher Timetable - ${timetables[0]?.teacher?.name || 'Teacher'}` :
+                                                          'School Timetable'}`}
+                                    schoolName={session.user.schoolName || undefined}
+                                    onExportStart={() => console.log('PDF export started')}
+                                    onExportComplete={() => console.log('PDF export completed')}
+                                    onExportError={(error) => console.error('PDF export failed:', error)}
+                                />
+                            )}
+                            
+                            <button
+                                onClick={handlePrint}
+                                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                            >
+                                <Printer className="h-4 w-4 mr-2" />
+                                Print
+                            </button>
+                            <span className="text-sm text-gray-700">
+                                Welcome, {session.user.name}
+                            </span>
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center space-x-2 text-red-600 hover:text-red-800"
+                            >
+                                <LogOut className="h-4 w-4" />
+                                <span>Sign Out</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {/* Main Content */}
+            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div className="px-4 py-6 sm:px-0">
+                    {/* Page Header */}
+                    <div className="bg-white shadow rounded-lg mb-6 print:shadow-none print:border print:border-gray-300">
+                        <div className="px-4 py-5 sm:p-6 text-center">
+                            <div className="text-2xl font-bold text-gray-900 mb-2">
+                                {session.user.schoolName}
+                            </div>
+                            <div className="text-lg text-gray-700 mb-2">
+                                Academic Year 2025-2026 | Generated: {timetables.length > 0 ? new Date(timetables[0].createdAt).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                }) : 'No timetables generated yet'}
+                            </div>
+                            <div className="text-xl font-bold text-gray-900">
+                                {classId ? `Class Timetable - ${timetables[0]?.class?.name || 'Class'}` :
+                                 teacherId ? `Teacher Timetable - ${timetables[0]?.teacher?.name || 'Teacher'}` :
+                                 'School Timetable'}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Timetable Grid */}
+                    {viewMode === 'list' ? (
+                        // List View - Show all generated timetables with PDF download buttons
+                        <div className="bg-white shadow rounded-lg overflow-hidden">
+                            <div className="px-6 py-4 border-b border-gray-200">
+                                <h2 className="text-xl font-bold text-gray-900">All Generated Timetables</h2>
+                                <p className="text-sm text-gray-600">
+                                    {classTimetables.length + teacherTimetables.length} timetables available for download
+                                </p>
+                            </div>
+                            <div className="p-6">
+                                {/* PDF Files History Section */}
+                                {pdfHistory.length > 0 && (
+                                    <div className="mb-8">
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                            <File className="h-5 w-5 mr-2" />
+                                            PDF Files History ({pdfHistory.length})
+                                        </h3>
+                                        <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                                            <table className="min-w-full divide-y divide-gray-200">
+                                                <thead className="bg-gray-100">
+                                                    <tr>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            File Name
+                                                        </th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Classes
+                                                        </th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Periods
+                                                        </th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Generated
+                                                        </th>
+                                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Actions
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="bg-white divide-y divide-gray-200">
+                                                    {pdfHistory.map((item: any, index: number) => (
+                                                        <tr key={item.id}>
+                                                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                                {item.fileName}
+                                                            </td>
+                                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                {item.classes}
+                                                            </td>
+                                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                {item.periods}
+                                                            </td>
+                                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                {new Date(item.generatedAt).toLocaleDateString()}
+                                                            </td>
+                                                            <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                                <button
+                                                                    onClick={() => window.open(item.url, '_blank')}
+                                                                    className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                                                >
+                                                                    Download
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => deletePdfHistoryItem(item.id)}
+                                                                    className="text-red-600 hover:text-red-900"
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+                                {/* Class Timetables */}
+                                {classTimetables.length > 0 && (
+                                    <div className="mb-8">
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Class Timetables</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {classTimetables.map((timetable: any) => (
+                                                <div key={timetable.id} className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <h4 className="text-md font-medium text-gray-900">{timetable.name}</h4>
+                                                        <span className="text-sm text-gray-500">{timetable.level}</span>
+                                                    </div>
+                                                    <p className="text-sm text-gray-600 mb-3">
+                                                        {timetable.entries.length} periods • Generated {new Date(timetable.createdAt).toLocaleDateString()}
+                                                    </p>
+                                                    <SinglePDFExportButton
+                                                        entries={timetable.entries.map((t: any) => ({
+                                                            id: t.id,
+                                                            day: t.timeSlot.day,
+                                                            period: t.timeSlot.period,
+                                                            startTime: t.timeSlot.startTime,
+                                                            endTime: t.timeSlot.endTime,
+                                                            class: t.class,
+                                                            teacher: t.teacher,
+                                                            subject: t.subject,
+                                                            module: t.module
+                                                        }))}
+                                                        title={`${session.user.schoolName} - Class Timetable - ${timetable.name}`}
+                                                        schoolName={session.user.schoolName || undefined}
+                                                        onExportStart={() => console.log('PDF export started')}
+                                                        onExportComplete={() => console.log('PDF export completed')}
+                                                        onExportError={(error) => console.error('PDF export failed:', error)}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {/* Teacher Timetables */}
+                                {teacherTimetables.length > 0 && (
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Teacher Timetables</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {teacherTimetables.map((timetable: any) => (
+                                                <div key={timetable.id} className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <h4 className="text-md font-medium text-gray-900">{timetable.name}</h4>
+                                                    </div>
+                                                    <p className="text-sm text-gray-600 mb-3">
+                                                        {timetable.entries.length} periods • Generated {new Date(timetable.createdAt).toLocaleDateString()}
+                                                    </p>
+                                                    <SinglePDFExportButton
+                                                        entries={timetable.entries.map((t: any) => ({
+                                                            id: t.id,
+                                                            day: t.timeSlot.day,
+                                                            period: t.timeSlot.period,
+                                                            startTime: t.timeSlot.startTime,
+                                                            endTime: t.timeSlot.endTime,
+                                                            class: t.class,
+                                                            teacher: t.teacher,
+                                                            subject: t.subject,
+                                                            module: t.module
+                                                        }))}
+                                                        title={`${session.user.schoolName} - Teacher Timetable - ${timetable.name}`}
+                                                        onExportStart={() => console.log('PDF export started')}
+                                                        onExportComplete={() => console.log('PDF export completed')}
+                                                        onExportError={(error) => console.error('PDF export failed:', error)}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ) : viewMode === 'compact' ? (
+                        // Compact A4 View
+                        <div className="bg-white shadow rounded-lg p-6">
+                            <CompactA4Timetable
+                                entries={filteredTimetables.map(t => ({
+                                    id: t.id,
+                                    day: t.timeSlot.day,
+                                    period: t.timeSlot.period,
+                                    startTime: t.timeSlot.startTime,
+                                    endTime: t.timeSlot.endTime,
+                                    class: t.class,
+                                    teacher: t.teacher,
+                                    subject: t.subject,
+                                    module: t.module
+                                }))}
+                                title={`${session.user.schoolName} - ${classId ? `Class Timetable - ${timetables[0]?.class?.name || 'Class'}` :
+                                                      teacherId ? `Teacher Timetable - ${timetables[0]?.teacher?.name || 'Teacher'}` :
+                                                      'School Timetable'}`}
+                            />
+                        </div>
+                    ) : (
+                        // Regular Grid View
+                        <div className="bg-white shadow rounded-lg overflow-hidden">
+                            <div className="px-6 py-4 border-b border-gray-200">
+                                <h2 className="text-xl font-bold text-gray-900">Timetable Grid</h2>
+                                <p className="text-sm text-gray-600">
+                                    {filteredTimetables.length} entries • {selectedDay !== 'all' ? `Day: ${DAY_LABELS[selectedDay as keyof typeof DAY_LABELS]}` : 'All days'} • {selectedClass !== 'all' ? `Class: ${classes.find(c => c.id === selectedClass)?.name || selectedClass}` : 'All classes'} • {selectedTeacher !== 'all' ? `Teacher: ${teachers.find(t => t.id === selectedTeacher)?.name || selectedTeacher}` : 'All teachers'}
+                                </p>
+                            </div>
+                            <div className="p-6">
+                                {/* Filters */}
+                                <div className="mb-6 flex flex-wrap gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Day</label>
+                                        <select
+                                            value={selectedDay}
+                                            onChange={(e) => setSelectedDay(e.target.value)}
+                                            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                                        >
+                                            <option value="all">All Days</option>
+                                            {DAYS.map(day => (
+                                                <option key={day} value={day}>{DAY_LABELS[day as keyof typeof DAY_LABELS]}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
+                                        <select
+                                            value={selectedClass}
+                                            onChange={(e) => setSelectedClass(e.target.value)}
+                                            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                                        >
+                                            <option value="all">All Classes</option>
+                                            {uniqueClasses.map(cls => (
+                                                <option key={cls.id} value={cls.id}>{cls.name} ({cls.level})</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Teacher</label>
+                                        <select
+                                            value={selectedTeacher}
+                                            onChange={(e) => setSelectedTeacher(e.target.value)}
+                                            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                                        >
+                                            <option value="all">All Teachers</option>
+                                            {uniqueTeachers.map(teacher => (
+                                                <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                {/* Timetable Grid */}
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Time
+                                                </th>
+                                                {DAYS.map(day => (
+                                                    <th key={day} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                        {DAY_LABELS[day as keyof typeof DAY_LABELS]}
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {PERIOD_SCHEDULE.map(({ period, start, end }) => (
+                                                <tr key={period}>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                        P{period}<br />
+                                                        <span className="text-xs text-gray-500">{start} - {end}</span>
+                                                    </td>
+                                                    {DAYS.map(day => {
+                                                        const entry = timetableGrid[day]?.[period]
+                                                        return (
+                                                            <td key={day} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                                <div className="max-w-xs truncate">
+                                                                    {getCellContent(entry)}
+                                                                </div>
+                                                            </td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </main>
+        </div>
+    )
+}
+
+export default function ViewTimetables() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div>Loading...</div></div>}>
+            <TimetablesContent />
+        </Suspense>
+    )
+}
+
+    return (
+        <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <header className="bg-white shadow no-print">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
