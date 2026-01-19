@@ -4,6 +4,8 @@ import dynamicImport from 'next/dynamic'
 export const dynamic = 'force-dynamic'
 // Disable static generation
 export const revalidate = 0
+// Use Edge Runtime for better dynamic handling
+export const runtime = 'edge'
 
 const TimetablesClient = dynamicImport(() => import('./client'), { ssr: false })
 
