@@ -1,6 +1,6 @@
-import TeacherTimetablesClient from './client'
+import dynamic from 'next/dynamic'
 
-export const dynamic = 'force-dynamic'
+const TeacherTimetablesClient = dynamic(() => import('./client'), { ssr: false })
 
 export default function Page() {
   return <TeacherTimetablesClient />

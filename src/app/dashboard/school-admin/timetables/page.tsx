@@ -1,6 +1,6 @@
-import TimetablesClient from './client'
+import dynamic from 'next/dynamic'
 
-export const dynamic = 'force-dynamic'
+const TimetablesClient = dynamic(() => import('./client'), { ssr: false })
 
 export default function Page() {
   return <TimetablesClient />
