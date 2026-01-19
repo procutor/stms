@@ -3,7 +3,6 @@ import loadable from 'next/dynamic'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-export const runtime = 'edge'
 
 const TeacherTimetablesClient = loadable(() => import('./client'), { ssr: false })
 

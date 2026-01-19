@@ -318,7 +318,6 @@ function ClassTimetablesContent() {
                                         module: t.module
                                     }))}
                                     title={`${session.user.schoolName} - Class Timetables`}
-                                    schoolName={session.user.schoolName || undefined}
                                     onExportStart={() => console.log('CSV export started')}
                                     onExportComplete={() => console.log('CSV export completed')}
                                     onExportError={(error) => console.error('CSV export failed:', error)}
