@@ -3,8 +3,6 @@
 import { useSession, signOut } from 'next-auth/react'
 
 export const dynamic = 'force-dynamic'
-export const runtime = 'edge'
-export const revalidate = 0
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Calendar, LogOut, ArrowLeft, Download, Eye, Printer, FileText, Trash2, Grid, List, BookOpen, File, Clock, X, User } from 'lucide-react'
@@ -106,14 +104,18 @@ export default function ViewTimetables() {
     }, [session, teacherId, classId])
 
     const loadPdfHistory = () => {
-        const history = JSON.parse(localStorage.getItem('timetablePdfHistory') || '[]')
-        setPdfHistory(history)
+        if (typeof window !== 'undefined') {
+            const history = JSON.parse(localStorage.getItem('timetablePdfHistory') || '[]')
+            setPdfHistory(history)
+        }
     }
 
     const deletePdfHistoryItem = (id: string) => {
-        const history = pdfHistory.filter((item: any) => item.id !== id)
-        setPdfHistory(history)
-        localStorage.setItem('timetablePdfHistory', JSON.stringify(history))
+        if (typeof window !== 'undefined') {
+            const history = pdfHistory.filter((item: any) => item.id !== id)
+            setPdfHistory(history)
+            localStorage.setItem('timetablePdfHistory', JSON.stringify(history))
+        }
     }
 
     const fetchTimetables = async () => {
