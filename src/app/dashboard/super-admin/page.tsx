@@ -209,7 +209,17 @@ export default function SuperAdminDashboard() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(newSchool),
+                body: JSON.stringify({
+                    schoolName: newSchool.schoolName,
+                    schoolType: newSchool.schoolType,
+                    province: newSchool.province,
+                    district: newSchool.district,
+                    sector: newSchool.sector,
+                    email: newSchool.email,
+                    phone: newSchool.phone,
+                    adminName: newSchool.adminName,
+                    password: newSchool.adminPassword
+                }),
             })
 
             const data = await response.json()
