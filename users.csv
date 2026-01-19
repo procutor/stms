@@ -1,0 +1,5 @@
+id,email,name,password,role,schoolId,isActive,maxWeeklyHours,teachingStreams,unavailableDays,unavailablePeriods,createdAt,updatedAt
+1,damascenetugireyezu@gmail.com,Super Administrator,$2a$10$example.hash,SUPER_ADMIN,,true,40,PRIMARY,,,
+2,admin@greenwoodprimary.edu,Sarah Johnson,$2a$10$example.hash,SCHOOL_ADMIN,school_id_1,true,40,PRIMARY,,,
+3,admin@riversidesecondary.edu,Michael Brown,$2a$10$example.hash,SCHOOL_ADMIN,school_id_2,true,40,SECONDARY,,,
+4,admin@techskills.edu,David Wilson,$2a$10$example.hash,SCHOOL_ADMIN,school_id_3,true,40,TSS,,,
