@@ -96,8 +96,8 @@ function TimetablesContent() {
     const [classId, setClassId] = useState<string | null>(null)
 
     useEffect(() => {
-        setTeacherId(searchParams?.get('teacherId'))
-        setClassId(searchParams?.get('classId'))
+        setTeacherId(searchParams?.get('teacherId') || null)
+        setClassId(searchParams?.get('classId') || null)
     }, [searchParams])
 
     useEffect(() => {
@@ -862,9 +862,5 @@ function TimetablesContent() {
 }
 
 export default function TimetablesClient() {
-    return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div>Loading...</div></div>}>
-            <TimetablesContent />
-        </Suspense>
-    )
+    return <TimetablesContent />
 }

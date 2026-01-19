@@ -577,9 +577,5 @@ function TeacherTimetablesContent() {
 }
 
 export default function TeacherTimetablesClient() {
-    return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div>Loading...</div></div>}>
-            <TeacherTimetablesContent />
-        </Suspense>
-    )
+    return <TeacherTimetablesContent />
 }

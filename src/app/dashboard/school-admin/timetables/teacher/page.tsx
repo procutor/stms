@@ -1,14 +1,16 @@
-import dynamicImport from 'next/dynamic'
+import dynamic from 'next/dynamic'
+import { Suspense } from 'react'
 
-// Force dynamic rendering at the route level
 export const dynamic = 'force-dynamic'
-// Disable static generation
 export const revalidate = 0
-// Use Edge Runtime for better dynamic handling
 export const runtime = 'edge'
 
-const TeacherTimetablesClient = dynamicImport(() => import('./client'), { ssr: false })
+const TeacherTimetablesClient = dynamic(() => import('./client'), { ssr: false })
 
 export default function Page() {
-  return <TeacherTimetablesClient />
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div>Loading timetable...</div></div>}>
+      <TeacherTimetablesClient />
+    </Suspense>
+  )
 }
