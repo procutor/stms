@@ -258,7 +258,10 @@ async function main() {
       data: timeSlots
     })
 
-    // Clear existing time slots for this school before creating new ones
+    // Clear existing data for this school to avoid conflicts
+    await prisma.timetable.deleteMany({
+      where: { schoolId: school.id }
+    })
     await prisma.timeSlot.deleteMany({
       where: { schoolId: school.id }
     })
