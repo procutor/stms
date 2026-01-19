@@ -91,9 +91,14 @@ function TimetablesContent() {
     const [teachers, setTeachers] = useState<any[]>([])
     const [pdfHistory, setPdfHistory] = useState<any[]>([])
 
-    // Get filter params from URL
-    const teacherId = searchParams?.get('teacherId')
-    const classId = searchParams?.get('classId')
+    // Get filter params from URL (only after hydration to prevent prerendering issues)
+    const [teacherId, setTeacherId] = useState<string | null>(null)
+    const [classId, setClassId] = useState<string | null>(null)
+
+    useEffect(() => {
+        setTeacherId(searchParams?.get('teacherId'))
+        setClassId(searchParams?.get('classId'))
+    }, [searchParams])
 
     useEffect(() => {
         if (session?.user) {
