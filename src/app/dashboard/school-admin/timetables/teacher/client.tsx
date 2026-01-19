@@ -3,7 +3,7 @@
 import { useSession, signOut } from 'next-auth/react'
 import { Suspense } from 'react'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Calendar, LogOut, ArrowLeft, Download, Eye, Printer, FileText, Trash2, Grid, List, BookOpen, File, Clock, X, Search, Filter, User } from 'lucide-react'
 import Link from 'next/link'
@@ -80,7 +80,6 @@ const BREAKS = [
 function TeacherTimetablesContent() {
     const { data: session, status } = useSession()
     const router = useRouter()
-    const searchParams = useSearchParams()
     const [timetables, setTimetables] = useState<TimetableEntry[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [selectedDay, setSelectedDay] = useState<string>('all')
