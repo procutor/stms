@@ -1,6 +1,9 @@
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 
-const TeacherTimetablesClient = dynamic(() => import('./client'), { ssr: false })
+// Add this line to force dynamic rendering
+export const dynamic = 'force-dynamic'
+
+const TeacherTimetablesClient = dynamicImport(() => import('./client'), { ssr: false })
 
 export default function Page() {
   return <TeacherTimetablesClient />
