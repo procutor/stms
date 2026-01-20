@@ -57,7 +57,7 @@ export default function SignIn() {
             <div className="max-w-md w-full space-y-8">
                 <div className="text-center">
                     <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
-                        Home
+                        Back to Home
                     </Link>
                 </div>
                 <div>
