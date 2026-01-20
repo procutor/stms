@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
     title: 'School Timetable Management System',
     description: 'Professional automatic timetable management for schools',
+    icons: {
+        icon: '/logo.svg',
+    },
 }
 
 export default function RootLayout({
