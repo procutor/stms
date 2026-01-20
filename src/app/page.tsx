@@ -2,7 +2,9 @@
 
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
+import ImageSlider from '@/components/homepage/ImageSlider'
 import Link from 'next/link'
+import { UserPlus, LogIn } from 'lucide-react'
 
 export default function HomePage() {
   return (
@@ -13,28 +15,58 @@ export default function HomePage() {
       <section className="relative bg-gradient-to-br from-primary-50 via-white to-primary-50 py-20 overflow-hidden">
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Free AI School Timetable Generator
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              <strong>Stop struggling with manual scheduling!</strong> Our intelligent AI automatically generates perfect timetables and sends each teacher their personalized schedule instantly. 
-              Transform your school's scheduling chaos into perfect harmony - no more conflicts, no more stress, and <span className="text-primary-600 font-semibold">save 20+ hours every week</span> 
-              to focus on what truly matters: your students' success. Just smart, efficient scheduling that works flawlessly from day one.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link 
-                href="/auth/signup"
-                className="bg-primary-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-700 transition-all transform hover:scale-105 shadow-lg"
-              >
-                Start to Generate Automatically your School Timetable here
-              </Link>
-              <Link 
-                href="/auth/signin"
-                className="border-2 border-primary-600 text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-600 hover:text-white transition-all"
-              >
-                Sign In to Continue
-              </Link>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h1 className="alt-hero-title animate-fadeIn text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Free AI School Timetable Generator
+              </h1>
+              <p className="alt-hero-description animate-fadeIn delay-1 text-xl text-gray-600 mb-8 leading-relaxed">
+                <strong>Stop struggling with manual scheduling!</strong> Our intelligent AI automatically generates perfect timetables and sends each teacher their personalized schedule instantly.
+                Transform your school's scheduling chaos into perfect harmony - no more conflicts, no more stress, and <span style={{color: '#001D40', fontWeight: '600'}}>save 20+ hours every week</span>
+                to focus on what truly matters: your students' success. Just smart, efficient scheduling that works flawlessly from day one.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 items-start">
+                <Link
+                  href="/auth/signup"
+                  className="bg-orange-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-orange-700 transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
+                >
+                  <UserPlus className="w-5 h-5" />
+                  Register
+                </Link>
+                <Link
+                  href="/auth/signin"
+                  className="bg-orange-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-orange-700 transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
+                >
+                  <LogIn className="w-5 h-5" />
+                  Login
+                </Link>
+              </div>
+            </div>
+            <div className="lg:pl-8">
+              <ImageSlider
+                images={[
+                  {
+                    src: '/slider-image-1.jpg.jpg',
+                    alt: 'School Timetable Management System - Dashboard View',
+                    title: 'Intelligent Dashboard',
+                    description: 'Comprehensive overview of all timetables and schedules'
+                  },
+                  {
+                    src: '/slider-image-2.jpg.png',
+                    alt: 'School Timetable Management System - Teacher Assignments',
+                    title: 'Teacher Management',
+                    description: 'Efficient teacher assignment and workload balancing'
+                  },
+                  {
+                    src: '/slider-image-3.jpg.jpg',
+                    alt: 'School Timetable Management System - Class Schedules',
+                    title: 'Class Scheduling',
+                    description: 'Automated class scheduling with conflict detection'
+                  }
+                ]}
+                autoPlay={true}
+                autoPlayDelay={5000}
+              />
             </div>
           </div>
         </div>
@@ -53,18 +85,13 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* For School Managers/Headteachers */}
+            {/* For Headteachers */}
             <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-6">
-                <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">For School Managers/Headteachers</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">For Headteachers</h3>
               <p className="text-gray-600 mb-4">
                 Lead with confidence while our AI handles the complexity. Focus on educational excellence and school improvement while we eliminate scheduling headaches and optimize resource utilization.
               </p>
-              <ul className="text-sm text-gray-600 space-y-2">
+              <ul className="text-[14px] text-gray-600 space-y-2">
                 <li className="flex items-center"><span className="text-primary-600 mr-2">✓</span> Eliminate scheduling conflicts and headaches</li>
                 <li className="flex items-center"><span className="text-primary-600 mr-2">✓</span> Improve staff satisfaction and morale</li>
                 <li className="flex items-center"><span className="text-primary-600 mr-2">✓</span> Save 20+ hours per week on administration</li>
@@ -72,14 +99,9 @@ export default function HomePage() {
               </ul>
             </div>
 
-            {/* For Deputy Heads of Studies */}
+            {/* For Deputy Heads of Studies DOS */}
             <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-              <div className="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center mb-6">
-                <svg className="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">For Deputy Heads of Studies</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">For Deputy of Studies DOS</h3>
               <p className="text-gray-600 mb-4">
                 Automatically generate perfect timetables for every teacher/trainer and all classes. Our AI handles complex scheduling while you focus on curriculum delivery and academic excellence.
               </p>
@@ -93,11 +115,6 @@ export default function HomePage() {
 
             {/* For Teachers/Trainers */}
             <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-6">
-                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">For Teachers/Trainers</h3>
               <p className="text-gray-600 mb-4">
                 Track your timetables effortlessly and stay organized. Receive your personalized schedule automatically and access all your teaching assignments in one convenient dashboard.
@@ -112,45 +129,45 @@ export default function HomePage() {
           </div>
 
           {/* Key Benefits for Leaders */}
-          <div className="mt-16 bg-gradient-to-r from-primary-600 to-primary-800 rounded-2xl p-8 text-white">
+          <div className="mt-16 bg-white rounded-2xl p-8 text-gray-900 border border-gray-200">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <div>
                 <h3 className="text-2xl font-bold mb-6">Why Educational Leaders Choose Our AI</h3>
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
-                    <svg className="w-6 h-6 text-primary-200 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-6 h-6 text-primary-600 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     <div>
                       <h4 className="font-semibold mb-1">Teachers Get Their Timetables Automatically</h4>
-                      <p className="text-primary-100 text-sm">No more manual distribution. Each teacher receives their personalized schedule instantly via the system.</p>
+                      <p className="text-gray-600 text-sm">No more manual distribution. Each teacher receives their personalized schedule instantly via the system.</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <svg className="w-6 h-6 text-primary-200 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-6 h-6 text-success-600 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     <div>
                       <h4 className="font-semibold mb-1">100% Free - No Hidden Costs</h4>
-                      <p className="text-primary-100 text-sm">Complete timetable management system at no cost. Perfect for schools with tight budgets.</p>
+                      <p className="text-gray-600 text-sm">Complete timetable management system at no cost. Perfect for schools with tight budgets.</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <svg className="w-6 h-6 text-primary-200 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-6 h-6 text-warning-600 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     <div>
                       <h4 className="font-semibold mb-1">Setup in 30 Minutes, Not Months</h4>
-                      <p className="text-primary-100 text-sm">Get your entire school scheduled and running in less than an hour. No lengthy implementation processes.</p>
+                      <p className="text-gray-600 text-sm">Get your entire school scheduled and running in less than an hour. No lengthy implementation processes.</p>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="text-center">
-                <div className="bg-white bg-opacity-10 rounded-xl p-6 backdrop-blur-sm">
-                  <h4 className="text-3xl font-bold mb-2">500+</h4>
-                  <p className="text-primary-100 mb-4">Schools Already Using Our System</p>
-                  <div className="text-sm text-primary-200">
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                  <h4 className="text-3xl font-bold text-gray-900 mb-2">500+</h4>
+                  <p className="text-gray-700 mb-4">Schools Already Using Our System</p>
+                  <div className="text-sm text-gray-600">
                     <p>From primary schools to technical institutes</p>
                     <p>All reporting significant time savings</p>
                   </div>
@@ -162,7 +179,7 @@ export default function HomePage() {
       </section>
 
       {/* Motivation Quote */}
-      <section className="bg-primary-600 py-16">
+      <section className="bg-blue-900 py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <blockquote className="text-2xl md:text-3xl font-light text-white italic mb-4">
             "The best schools don't just teach - they inspire. And inspiration starts with efficient, fair scheduling that puts teachers and students first."
@@ -330,7 +347,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-8 text-white">
+            <div className="bg-blue-900 rounded-2xl p-8 text-white">
               <h3 className="text-2xl font-bold mb-6">Join 500+ Schools Already Using SchoolTimetable</h3>
               <div className="space-y-4 mb-8">
                 <div className="flex items-center space-x-3">
@@ -364,28 +381,30 @@ export default function HomePage() {
       </section>
 
       {/* Call to Action */}
-      <section className="bg-gradient-to-r from-primary-600 to-primary-800 py-20">
+      <section className="bg-white py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
             Ready to Give Your Teachers the Timetables They Deserve?
           </h2>
-          <p className="text-xl text-primary-100 mb-8">
-            Stop managing timetables manually. Let our AI create perfect schedules and automatically distribute them to every teacher. 
+          <p className="text-xl text-gray-600 mb-8">
+            Stop managing timetables manually. Let our AI create perfect schedules and automatically distribute them to every teacher.
             <strong>It's free, it's fast, and it actually works.</strong>
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
+            <Link
               href="/auth/signup"
-              className="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg"
+              className="bg-orange-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-orange-700 transition-all transform hover:scale-105 shadow-lg flex items-center"
             >
-               Start Free - Set Up Your School Now
+              <UserPlus className="w-5 h-5 mr-2" />
+              Register
             </Link>
-            <a 
-              href="#about"
-              className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-primary-600 transition-all"
+            <Link
+              href="/auth/signin"
+              className="border-2 border-orange-600 text-orange-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-orange-600 hover:text-white transition-all flex items-center"
             >
-              Learn More
-            </a>
+              <LogIn className="w-5 h-5 mr-2" />
+              Login
+            </Link>
           </div>
         </div>
       </section>

@@ -7,14 +7,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">ST</span>
-              </div>
-              <span className="text-xl font-bold">SchoolTimetable</span>
-            </div>
+            <span className="text-xl font-bold mb-4 block">SchoolTimetable</span>
             <p className="text-gray-300 mb-4 max-w-md">
-              Empowering educational institutions with intelligent timetable management solutions. 
+              Empowering educational institutions with intelligent timetable management solutions.
               Streamline scheduling, optimize resources, and enhance learning experiences.
             </p>
             <div className="flex space-x-4">
