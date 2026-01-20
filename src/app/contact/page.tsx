@@ -5,10 +5,16 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import { motion } from 'framer-motion'
 import { Phone, Mail, MapPin, Clock } from 'lucide-react'
+import Script from 'next/script'
 
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-white">
+      <Script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6678342774510313"
+        crossOrigin="anonymous"
+      />
       <Header />
       
       {/* Hero Section */}

@@ -5,10 +5,16 @@ import Footer from '@/components/layout/Footer'
 import ImageSlider from '@/components/homepage/ImageSlider'
 import Link from 'next/link'
 import { UserPlus, LogIn } from 'lucide-react'
+import Script from 'next/script'
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
+      <Script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6678342774510313"
+        crossOrigin="anonymous"
+      />
       <Header />
       
       {/* Hero Section */}
