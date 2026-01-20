@@ -56,7 +56,7 @@ export default function SignIn() {
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
                 <div className="text-center">
-                    <Link href="/" className="text-xl text-blue-900 hover:text-blue-700">
+                    <Link href="/" className="text-xl text-orange-700 hover:text-orange-600">
                         Back to Home
                     </Link>
                 </div>
