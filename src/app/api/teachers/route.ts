@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
         const { password, ...createData } = body
         const validatedData = teacherCreateSchema.omit({ password: true }).parse(createData)
         
-        // Generate default password: {schoolName}@123
-        const defaultPassword = `${session.user.schoolName}@123`
+        // Generate default password: Rwanda@123
+        const defaultPassword = 'Rwanda@123'
 
         // Use service layer to create teacher
         const teacher = await TeacherService.createTeacher({
