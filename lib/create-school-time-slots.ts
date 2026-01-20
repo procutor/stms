@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'
+import { PrismaClient } from '@prisma/client'
 
-export async function createSchoolTimeSlots(schoolId) {
+export async function createSchoolTimeSlots(schoolId: string) {
   try {
     console.log(`Creating time slots for school: ${schoolId}`)
 
@@ -79,7 +80,7 @@ export async function createSchoolTimeSlots(schoolId) {
     console.error('Error creating time slots:', error)
     return {
       success: false,
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     }
   }
 }

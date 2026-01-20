@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
         // Hash password
         const hashedPassword = await bcrypt.hash(validatedData.password, 12)
 
-        // Create school and admin user and auto-setup time slots in a transaction
+        // Create school and admin user in a transaction
         const result = await db.$transaction(async (tx: any) => {
             // Create school (approved status for super admin creation)
             const school = await tx.school.create({
@@ -79,20 +79,21 @@ export async function POST(request: NextRequest) {
                 }
             })
 
-            // Automatically create time slots for the new school
-            const timeSlotResult = await createSchoolTimeSlots(school.id)
-            
-            if (!timeSlotResult.success) {
-                throw new Error(`Failed to create time slots: ${timeSlotResult.error}`)
-            }
-
-            return { school, admin, timeSlotCount: timeSlotResult.count }
+            return { school, admin }
         })
 
+        // Create time slots outside the transaction
+        const timeSlotResult = await createSchoolTimeSlots(result.school.id)
+
+        if (!timeSlotResult.success) {
+            console.error('Failed to create time slots after school creation:', timeSlotResult.error)
+            // Don't fail the entire operation, just log the error
+        }
+
         return NextResponse.json({
-            message: 'School created successfully with automatic time slot setup. Your school is now ready to use!',
+            message: 'School created successfully! Your school is now ready to use.',
             schoolId: result.school.id,
-            timeSlotsCreated: result.timeSlotCount,
+            timeSlotsCreated: timeSlotResult.success ? timeSlotResult.count : 0,
             adminId: result.admin.id
         }, { status: 201 })
 
