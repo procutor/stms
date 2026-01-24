@@ -37,7 +37,9 @@ export default function SchoolAdminSidebar({ className = '' }: SchoolAdminSideba
                 try {
                     const response = await fetch('/api/schools')
                     if (response.ok) {
-                        const schools = await response.json()
+                        const data = await response.json()
+                        console.log('Schools API response:', data)
+                        const schools = data.schools || data
                         const currentSchool = schools.find((school: School) => school.id === session.user.schoolId)
                         setSchoolInfo(currentSchool || null)
                     }

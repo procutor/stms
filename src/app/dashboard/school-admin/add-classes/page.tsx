@@ -82,6 +82,8 @@ export default function AddClassesPage() {
     const [selectedClassForDetails, setSelectedClassForDetails] = useState<Class | null>(null)
     const [classDetailsAssignments, setClassDetailsAssignments] = useState<any[]>([])
     const [classSearchTerm, setClassSearchTerm] = useState('')
+    const [currentPage, setCurrentPage] = useState(1)
+    const [pagination, setPagination] = useState<{page: number, limit: number, totalCount: number, totalPages: number} | null>(null)
     // Teacher selection for automatic assignment creation
     const [selectedTeacherForSubjects, setSelectedTeacherForSubjects] = useState('')
     const [showTeacherSelection, setShowTeacherSelection] = useState(false)
