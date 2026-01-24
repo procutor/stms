@@ -39,7 +39,7 @@ export default function SubjectsList() {
             const response = await fetch('/api/subjects')
             if (response.ok) {
                 const data = await response.json()
-                setSubjects(data.subjects)
+                setSubjects(data)
             }
         } catch (error) {
             console.error('Error fetching subjects:', error)

@@ -150,7 +150,7 @@ function TimetablesContent() {
             
             if (classesRes.ok) {
                 const classesData = await classesRes.json()
-                setClasses(classesData.classes || [])
+                setClasses(classesData || [])
             }
             
             if (teachersRes.ok) {

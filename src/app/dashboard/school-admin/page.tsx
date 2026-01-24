@@ -102,7 +102,7 @@ export default function SchoolAdminDashboard() {
                     if (classes.length === 0) {
                         const response = await fetch('/api/classes')
                         if (response.ok) {
-                            setClasses((await response.json()).classes || [])
+                            setClasses(await response.json() || [])
                         }
                     }
                     break
@@ -216,11 +216,11 @@ export default function SchoolAdminDashboard() {
 
             // Fetch subjects count
             const subjectsResponse = await fetch('/api/subjects')
-            const subjectsData = subjectsResponse.ok ? await subjectsResponse.json() : { subjects: [] }
+            const subjectsData = subjectsResponse.ok ? await subjectsResponse.json() : []
 
             // Fetch classes count
             const classesResponse = await fetch('/api/classes')
-            const classesData = classesResponse.ok ? await classesResponse.json() : { classes: [] }
+            const classesData = classesResponse.ok ? await classesResponse.json() : []
 
             // Fetch modules count
             const modulesResponse = await fetch('/api/modules')
@@ -228,9 +228,9 @@ export default function SchoolAdminDashboard() {
 
             setStats({
                 totalTeachers: teachersData.length,
-                totalClasses: classesData.classes?.length || 0,
+                totalClasses: classesData.length,
                 totalModules: modulesData.length,
-                totalSubjects: subjectsData.subjects?.length || 0
+                totalSubjects: subjectsData.length
             })
         } catch (error) {
             console.error('Error fetching dashboard stats:', error)
@@ -356,135 +356,103 @@ export default function SchoolAdminDashboard() {
                         {/* Single Row Statistics Cards */}
                         <div className="flex flex-nowrap gap-4 mb-8 overflow-x-auto pb-2">
                             <div className="flex-shrink-0 w-56">
-                                <button
-                                    onClick={() => handleCategorySelect('classes')}
-                                    className={`bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-lg transition-all text-left block w-full ${
-                                        selectedCategory === 'classes' ? 'ring-2 ring-blue-500 bg-blue-50' : ''
-                                    }`}
+                                <Link
+                                    href="/dashboard/school-admin/classes"
+                                    className="bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-lg transition-all text-left block w-full"
                                 >
                                     <div className="p-6">
                                         <div className="flex items-center">
                                             <div className="flex-shrink-0">
-                                                <Users className={`h-8 w-8 ${
-                                                    selectedCategory === 'classes' ? 'text-blue-600' : 'text-gray-400'
-                                                }`} />
+                                                <Users className="h-8 w-8 text-gray-400" />
                                             </div>
                                             <div className="ml-5 w-0 flex-1">
                                                 <dl>
-                                                    <dt className={`text-base font-medium truncate ${
-                                                        selectedCategory === 'classes' ? 'text-blue-700' : 'text-gray-700'
-                                                    }`}>
+                                                    <dt className="text-base font-medium truncate text-gray-700">
                                                         Total Classes
                                                     </dt>
-                                                    <dd className={`text-2xl font-bold ${
-                                                        selectedCategory === 'classes' ? 'text-blue-900' : 'text-gray-900'
-                                                    }`}>
+                                                    <dd className="text-2xl font-bold text-gray-900">
                                                         {stats.totalClasses}
                                                     </dd>
                                                 </dl>
                                             </div>
                                         </div>
                                     </div>
-                                </button>
+                                </Link>
                             </div>
 
                             <div className="flex-shrink-0 w-56">
-                                <button
-                                    onClick={() => handleCategorySelect('modules')}
-                                    className={`bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-lg transition-all text-left block w-full ${
-                                        selectedCategory === 'modules' ? 'ring-2 ring-blue-500 bg-blue-50' : ''
-                                    }`}
+                                <Link
+                                    href="/dashboard/school-admin/modules"
+                                    className="bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-lg transition-all text-left block w-full"
                                 >
                                     <div className="p-6">
                                         <div className="flex items-center">
                                             <div className="flex-shrink-0">
-                                                <Wrench className={`h-8 w-8 ${
-                                                    selectedCategory === 'modules' ? 'text-blue-600' : 'text-gray-400'
-                                                }`} />
+                                                <Wrench className="h-8 w-8 text-gray-400" />
                                             </div>
                                             <div className="ml-5 w-0 flex-1">
                                                 <dl>
-                                                    <dt className={`text-base font-medium truncate ${
-                                                        selectedCategory === 'modules' ? 'text-blue-700' : 'text-gray-700'
-                                                    }`}>
+                                                    <dt className="text-base font-medium truncate text-gray-700">
                                                         Total Modules
                                                     </dt>
-                                                    <dd className={`text-2xl font-bold ${
-                                                        selectedCategory === 'modules' ? 'text-blue-900' : 'text-gray-900'
-                                                    }`}>
+                                                    <dd className="text-2xl font-bold text-gray-900">
                                                         {stats.totalModules}
                                                     </dd>
                                                 </dl>
                                             </div>
                                         </div>
                                     </div>
-                                </button>
+                                </Link>
                             </div>
 
                             <div className="flex-shrink-0 w-56">
-                                <button
-                                    onClick={() => handleCategorySelect('subjects')}
-                                    className={`bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-lg transition-all text-left block w-full ${
-                                        selectedCategory === 'subjects' ? 'ring-2 ring-blue-500 bg-blue-50' : ''
-                                    }`}
+                                <Link
+                                    href="/dashboard/school-admin/subjects"
+                                    className="bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-lg transition-all text-left block w-full"
                                 >
                                     <div className="p-6">
                                         <div className="flex items-center">
                                             <div className="flex-shrink-0">
-                                                <BookOpen className={`h-8 w-8 ${
-                                                    selectedCategory === 'subjects' ? 'text-blue-600' : 'text-gray-400'
-                                                }`} />
+                                                <BookOpen className="h-8 w-8 text-gray-400" />
                                             </div>
                                             <div className="ml-5 w-0 flex-1">
                                                 <dl>
-                                                    <dt className={`text-base font-medium truncate ${
-                                                        selectedCategory === 'subjects' ? 'text-blue-700' : 'text-gray-700'
-                                                    }`}>
+                                                    <dt className="text-base font-medium truncate text-gray-700">
                                                         Total Subjects
                                                     </dt>
-                                                    <dd className={`text-2xl font-bold ${
-                                                        selectedCategory === 'subjects' ? 'text-blue-900' : 'text-gray-900'
-                                                    }`}>
+                                                    <dd className="text-2xl font-bold text-gray-900">
                                                         {stats.totalSubjects}
                                                     </dd>
                                                 </dl>
                                             </div>
                                         </div>
                                     </div>
-                                </button>
+                                </Link>
                             </div>
 
                             <div className="flex-shrink-0 w-56">
-                                <button
-                                    onClick={() => handleCategorySelect('teachers')}
-                                    className={`bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-lg transition-all text-left block w-full ${
-                                        selectedCategory === 'teachers' ? 'ring-2 ring-blue-500 bg-blue-50' : ''
-                                    }`}
+                                <Link
+                                    href="/dashboard/school-admin/manage-teachers"
+                                    className="bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-lg transition-all text-left block w-full"
                                 >
                                     <div className="p-6">
                                         <div className="flex items-center">
                                             <div className="flex-shrink-0">
-                                                <Users className={`h-8 w-8 ${
-                                                    selectedCategory === 'teachers' ? 'text-blue-600' : 'text-gray-400'
-                                                }`} />
+                                                <Users className="h-8 w-8 text-gray-400" />
                                             </div>
                                             <div className="ml-5 w-0 flex-1">
                                                 <dl>
-                                                    <dt className={`text-base font-medium truncate ${
-                                                        selectedCategory === 'teachers' ? 'text-blue-700' : 'text-gray-700'
-                                                    }`}>
+                                                    <dt className="text-base font-medium truncate text-gray-700">
                                                         Total Teachers
                                                     </dt>
-                                                    <dd className={`text-2xl font-bold ${
-                                                        selectedCategory === 'teachers' ? 'text-blue-900' : 'text-gray-900'
-                                                    }`}>
+                                                    <dd className="text-2xl font-bold text-gray-900">
                                                         {stats.totalTeachers}
                                                     </dd>
                                                 </dl>
                                             </div>
                                         </div>
                                     </div>
-                                </button>
+                                </Link>
                             </div>
 
                         </div>
@@ -513,8 +481,23 @@ export default function SchoolAdminDashboard() {
                                     {selectedCategory === 'subjects' && (
                                         <div className="overflow-x-auto">
                                             {subjects.length === 0 ? (
-                                                <div className="text-center py-8">
-                                                    <p className="text-gray-500">No subjects found.</p>
+                                                <div className="text-center py-12">
+                                                    <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+                                                    <h3 className="mt-2 text-sm font-medium text-gray-900">
+                                                        No subjects found
+                                                    </h3>
+                                                    <p className="mt-1 text-sm text-gray-500">
+                                                        Subjects will appear here once they are registered in the system.
+                                                    </p>
+                                                    <div className="mt-6">
+                                                        <Link
+                                                            href="/dashboard/school-admin/subjects/create"
+                                                            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                                                        >
+                                                            <Plus className="h-4 w-4 mr-2" />
+                                                            Create Subject
+                                                        </Link>
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <table className="min-w-full divide-y divide-gray-200">

@@ -97,39 +97,25 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        const { searchParams } = new URL(request.url)
-        const page = parseInt(searchParams.get('page') || '1')
-        const limit = parseInt(searchParams.get('limit') || '10')
-        const skip = (page - 1) * limit
-
-        const [subjects, totalCount] = await Promise.all([
-            db.subject.findMany({
-                where: {
-                    schoolId: session.user.schoolId
-                },
-                include: {
-                    _count: {
-                        select: {
-                            teachers: true,
-                            classSubjects: true,
-                            timetables: true
-                        }
+        const subjects = await db.subject.findMany({
+            where: {
+                schoolId: session.user.schoolId
+            },
+            include: {
+                _count: {
+                    select: {
+                        teachers: true,
+                        classSubjects: true,
+                        timetables: true
                     }
-                },
-                orderBy: {
-                    name: 'asc'
-                },
-                skip,
-                take: limit
-            }),
-            db.subject.count({
-                where: {
-                    schoolId: session.user.schoolId
                 }
-            })
-        ])
+            },
+            orderBy: {
+                name: 'asc'
+            }
+        })
 
-        return NextResponse.json({ subjects })
+        return NextResponse.json(subjects)
 
     } catch (error) {
         console.error('Subjects fetch error:', error)

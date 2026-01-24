@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 export async function GET(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions)
+        console.log('Timetables API - session user:', session?.user)
 
         if (!session || session.user.role !== 'SCHOOL_ADMIN') {
             return NextResponse.json(
@@ -24,9 +25,6 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url)
         const classId = searchParams.get('classId')
         const teacherId = searchParams.get('teacherId')
-        const page = parseInt(searchParams.get('page') || '1')
-        const limit = parseInt(searchParams.get('limit') || '10')
-        const skip = (page - 1) * limit
 
         let whereClause: any = {
             schoolId: session.user.schoolId
@@ -40,74 +38,64 @@ export async function GET(request: NextRequest) {
             whereClause.teacherId = teacherId
         }
 
-        const [timetables, totalCount] = await Promise.all([
-            db.timetable.findMany({
-                where: whereClause,
-                include: {
-                    class: {
-                        select: {
-                            name: true,
-                            level: true,
-                            stream: true
-                        }
-                    },
-                    teacher: {
-                        select: {
-                            name: true,
-                            email: true
-                        }
-                    },
-                    subject: {
-                        select: {
-                            name: true,
-                            code: true
-                        }
-                    },
-                    module: {
-                        select: {
-                            name: true,
-                            category: true
-                        }
-                    },
-                    timeSlot: {
-                        select: {
-                            day: true,
-                            period: true,
-                            startTime: true,
-                            endTime: true,
-                            isBreak: true
-                        }
+        console.log('Timetables API - whereClause:', whereClause)
+        console.log('Timetables API - executing db query')
+
+        const timetables = await db.timetable.findMany({
+            where: whereClause,
+            include: {
+                class: {
+                    select: {
+                        name: true,
+                        level: true,
+                        stream: true
                     }
                 },
-                orderBy: [
-                    {
-                        timeSlot: {
-                            day: 'asc'
-                        }
-                    },
-                    {
-                        timeSlot: {
-                            period: 'asc'
-                        }
+                teacher: {
+                    select: {
+                        name: true,
+                        email: true
                     }
-                ],
-                skip,
-                take: limit
-            }),
-            db.timetable.count({
-                where: whereClause
-            })
-        ])
-
-        return NextResponse.json({
-            timetables,
-            pagination: {
-                page,
-                limit,
-                totalCount,
-                totalPages: Math.ceil(totalCount / limit)
-            }
+                },
+                subject: {
+                    select: {
+                        name: true,
+                        code: true
+                    }
+                },
+                module: {
+                    select: {
+                        name: true,
+                        category: true
+                    }
+                },
+                timeSlot: {
+                    select: {
+                        day: true,
+                        period: true,
+                        startTime: true,
+                        endTime: true,
+                        isBreak: true
+                    }
+                }
+            },
+            orderBy: [
+                {
+                    timeSlot: {
+                        day: 'asc'
+                    }
+                },
+                {
+                    timeSlot: {
+                        period: 'asc'
+                    }
+                }
+            ]
         })
+
+        console.log('Timetables API - query successful, timetables length:', timetables.length)
+
+        return NextResponse.json(timetables)
 
     } catch (error) {
         console.error('Timetables fetch error:', error)

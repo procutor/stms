@@ -113,7 +113,7 @@ export default function AddClassesPage() {
 
             if (classesRes.ok) {
                 const classesData = await classesRes.json()
-                setClasses(classesData.classes || [])
+                setClasses(classesData || [])
             } else if (classesRes.status === 400) {
                 // No school assigned
                 router.push('/dashboard/school-admin')
