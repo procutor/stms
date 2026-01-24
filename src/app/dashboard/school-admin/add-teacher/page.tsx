@@ -3,8 +3,10 @@
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { Users, LogOut, ArrowLeft, Plus, UserCheck, FileText, X, Wrench, Eye, Edit, Trash2 } from 'lucide-react'
 import Link from 'next/link'
+import SchoolAdminSidebar from '@/components/layout/SchoolAdminSidebar'
 
 // Import teacher management components
 import TeacherStatsCards from '../../../../components/teachers/TeacherStatsCards'
@@ -33,7 +35,10 @@ interface Teacher {
 }
 
 export default function AddTeacher() {
+    console.log('AddTeacher component rendering')
     const { data: session, status } = useSession()
+    const pathname = usePathname()
+    console.log('Session status:', status, 'Session data:', session, 'Current pathname:', pathname)
     const router = useRouter()
     
     // Teacher management states
@@ -58,22 +63,33 @@ export default function AddTeacher() {
     })
 
     useEffect(() => {
+        console.log('useEffect triggered, session status:', status, 'session user:', session?.user)
         if (session?.user) {
+            console.log('Session user exists, calling fetchTeachers')
             fetchTeachers()
+        } else {
+            console.log('No session user, not calling fetchTeachers')
         }
     }, [session])
 
     const fetchTeachers = async () => {
+        console.log('Fetching teachers...')
         try {
             const response = await fetch('/api/teachers')
+            console.log('Fetch response:', response.status, response.ok)
             if (response.ok) {
                 const data = await response.json()
+                console.log('Teachers data received, length:', data.length)
                 setTeachers(data)
+            } else {
+                const errorText = await response.text()
+                console.error('Failed to fetch teachers:', response.status, errorText)
             }
         } catch (error) {
             console.error('Error fetching teachers:', error)
         } finally {
             setIsLoading(false)
+            console.log('Fetch teachers completed, isLoading set to false')
         }
     }
 
@@ -225,6 +241,7 @@ export default function AddTeacher() {
     }
 
     if (!session.user.schoolId) {
+        console.log('No schoolId, showing no school message')
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
@@ -241,10 +258,17 @@ export default function AddTeacher() {
         )
     }
 
+    console.log('Rendering main content, teachers:', teachers, 'isLoading:', isLoading)
+    try {
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow">
+        <div className="min-h-screen bg-slate-50">
+            {/* Sticky Sidebar */}
+            <SchoolAdminSidebar />
+
+            {/* Main Content */}
+            <div className="ml-64 flex flex-col min-h-screen">
+                {/* Header */}
+                <header className="bg-white shadow">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center py-6">
                         <div className="flex items-center space-x-4">
@@ -291,20 +315,22 @@ export default function AddTeacher() {
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl leading-6 font-bold text-gray-900">Teacher Management</h3>
                                 <div className="flex space-x-2">
-                                    <button
+                                    {/* Hidden: assign modules to teacher */}
+                                    {/* <button
                                         onClick={() => setShowTrainerAssignments(true)}
                                         className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                                     >
                                         <Wrench className="h-4 w-4 mr-2" />
                                         assign modules to teacher
-                                    </button>
-                                    <Link
+                                    </button> */}
+                                    {/* Hidden: Assign Subjects to Teacher */}
+                                    {/* <Link
                                         href="/dashboard/school-admin/teacher-assignments"
                                         className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                                     >
                                         <FileText className="h-4 w-4 mr-2" />
                                         Assign Subjects to Teacher
-                                    </Link>
+                                    </Link> */}
                                     <Link
                                         href="/dashboard/school-admin/teachers/availability"
                                         className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
@@ -431,6 +457,15 @@ export default function AddTeacher() {
                     </div>
                 </div>
             )}
+            </div>
         </div>
     )
+    } catch (error) {
+        console.error('Error rendering AddTeacher component:', error)
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-lg text-red-600">An error occurred while loading the page. Check console for details.</div>
+            </div>
+        )
+    }
 }

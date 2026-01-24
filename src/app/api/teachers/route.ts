@@ -4,6 +4,10 @@ import { authOptions } from '@/lib/auth'
 import { TeacherService } from '@/lib/services/TeacherService'
 import { z } from 'zod'
 
+const teacherDeleteSchema = z.object({
+    id: z.string().min(1, 'Teacher ID is required')
+})
+
 const teacherCreateSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
     email: z.string().email('Invalid email address'),
@@ -100,6 +104,91 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(
                 { error: error.message },
                 { status: 400 }
+            )
+        }
+
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500 }
+        )
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const session = await checkAuth()
+        const body = await request.json()
+        const validatedData = teacherDeleteSchema.parse(body)
+
+        // Check if teacher exists and belongs to the school
+        const teacher = await TeacherService.getTeacherById(validatedData.id)
+
+        if (!teacher || teacher.schoolId !== session.user.schoolId) {
+            return NextResponse.json(
+                { error: 'Teacher not found' },
+                { status: 404 }
+            )
+        }
+
+        // Check for existing assignments (comprehensive check)
+        const allAssignments = await TeacherService.getAllTeacherAssignments(validatedData.id)
+
+        if (allAssignments.totalCount > 0) {
+            const assignmentDetails = []
+
+            if (allAssignments.teacherSubjects.length > 0) {
+                assignmentDetails.push(`${allAssignments.teacherSubjects.length} subject assignments`)
+            }
+            if (allAssignments.trainerModules.length > 0) {
+                assignmentDetails.push(`${allAssignments.trainerModules.length} module assignments`)
+            }
+            if (allAssignments.teacherClassSubjects.length > 0) {
+                assignmentDetails.push(`${allAssignments.teacherClassSubjects.length} class-subject assignments`)
+            }
+            if (allAssignments.trainerClassModules.length > 0) {
+                assignmentDetails.push(`${allAssignments.trainerClassModules.length} class-module assignments`)
+            }
+            if (allAssignments.timetables.length > 0) {
+                assignmentDetails.push(`${allAssignments.timetables.length} timetable entries`)
+            }
+
+            return NextResponse.json(
+                {
+                    error: `Cannot delete teacher with existing assignments: ${assignmentDetails.join(', ')}. Please remove all assignments first.`,
+                    assignmentCount: allAssignments.totalCount,
+                    assignmentBreakdown: {
+                        subjects: allAssignments.teacherSubjects.length,
+                        modules: allAssignments.trainerModules.length,
+                        classSubjects: allAssignments.teacherClassSubjects.length,
+                        classModules: allAssignments.trainerClassModules.length,
+                        timetables: allAssignments.timetables.length
+                    }
+                },
+                { status: 400 }
+            )
+        }
+
+        // Delete teacher using service layer
+        await TeacherService.deleteTeacher(validatedData.id)
+
+        return NextResponse.json({
+            message: 'Teacher deleted successfully'
+        })
+
+    } catch (error) {
+        console.error('Teacher deletion error:', error)
+
+        if (error instanceof z.ZodError) {
+            return NextResponse.json(
+                { error: 'Validation failed', details: error.errors },
+                { status: 400 }
+            )
+        }
+
+        if (error instanceof Error && error.message === 'Unauthorized') {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 }
             )
         }
 

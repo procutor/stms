@@ -112,6 +112,9 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url)
         const classId = searchParams.get('classId')
         const subjectId = searchParams.get('subjectId')
+        const page = parseInt(searchParams.get('page') || '1')
+        const limit = parseInt(searchParams.get('limit') || '10')
+        const skip = (page - 1) * limit
 
         let whereClause: any = {
             class: {
@@ -127,40 +130,53 @@ export async function GET(request: NextRequest) {
             whereClause.subjectId = subjectId
         }
 
-        const assignments = await db.classSubject.findMany({
-            where: whereClause,
-            include: {
-                class: {
-                    select: {
-                        name: true,
-                        level: true,
-                        stream: true
-                    }
-                },
-                subject: {
-                    select: {
-                        name: true,
-                        code: true,
-                        level: true
-                    }
-                }
-            },
-            orderBy: [
-                {
+        const [assignments, totalCount] = await Promise.all([
+            db.classSubject.findMany({
+                where: whereClause,
+                include: {
                     class: {
-                        name: 'asc'
+                        select: {
+                            name: true,
+                            level: true,
+                            stream: true
+                        }
+                    },
+                    subject: {
+                        select: {
+                            name: true,
+                            code: true,
+                            level: true
+                        }
                     }
                 },
-                {
-                    subject: {
-                        name: 'asc'
+                orderBy: [
+                    {
+                        class: {
+                            name: 'asc'
+                        }
+                    },
+                    {
+                        subject: {
+                            name: 'asc'
+                        }
                     }
-                }
-            ]
-        })
+                ],
+                skip,
+                take: limit
+            }),
+            db.classSubject.count({
+                where: whereClause
+            })
+        ])
 
         return NextResponse.json({
-            classSubjects: assignments
+            classSubjects: assignments,
+            pagination: {
+                page,
+                limit,
+                totalCount,
+                totalPages: Math.ceil(totalCount / limit)
+            }
         })
 
     } catch (error) {

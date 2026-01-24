@@ -86,11 +86,11 @@ export default function AddClassesPage() {
     const [selectedTeacherForSubjects, setSelectedTeacherForSubjects] = useState('')
     const [showTeacherSelection, setShowTeacherSelection] = useState(false)
 
-    const filteredClasses = classes.filter(cls =>
+    const filteredClasses = Array.isArray(classes) ? classes.filter(cls =>
         cls.name.toLowerCase().includes(classSearchTerm.toLowerCase()) ||
         cls.level.toLowerCase().includes(classSearchTerm.toLowerCase()) ||
         (cls.stream && cls.stream.toLowerCase().includes(classSearchTerm.toLowerCase()))
-    )
+    ) : []
 
     useEffect(() => {
         if (session?.user) {
@@ -111,7 +111,7 @@ export default function AddClassesPage() {
 
             if (classesRes.ok) {
                 const classesData = await classesRes.json()
-                setClasses(classesData)
+                setClasses(classesData.classes || [])
             } else if (classesRes.status === 400) {
                 // No school assigned
                 router.push('/dashboard/school-admin')
@@ -119,12 +119,12 @@ export default function AddClassesPage() {
 
             if (subjectsRes.ok) {
                 const subjectsData = await subjectsRes.json()
-                setSubjects(subjectsData)
+                setSubjects(subjectsData || [])
             }
 
             if (modulesRes.ok) {
                 const modulesData = await modulesRes.json()
-                setModules(modulesData)
+                setModules(modulesData || [])
             }
 
             if (trainersRes.ok) {
@@ -686,25 +686,25 @@ export default function AddClassesPage() {
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                                 <div className="text-center">
                                     <div className="text-3xl font-bold text-primary-600">
-                                        {classes.length}
+                                        {Array.isArray(classes) ? classes.length : 0}
                                     </div>
                                     <div className="text-sm text-gray-500">Total Classes</div>
                                 </div>
                                 <div className="text-center">
                                     <div className="text-3xl font-bold text-blue-600">
-                                        {classes.reduce((sum, cls) => sum + cls._count.subjects, 0)}
+                                        {Array.isArray(classes) ? classes.reduce((sum, cls) => sum + cls._count.subjects, 0) : 0}
                                     </div>
                                     <div className="text-sm text-gray-500">Total Subjects Assigned</div>
                                 </div>
                                 <div className="text-center">
                                     <div className="text-3xl font-bold text-purple-600">
-                                        {classes.reduce((sum, cls) => sum + cls._count.trainerClassModules, 0)}
+                                        {Array.isArray(classes) ? classes.reduce((sum, cls) => sum + cls._count.trainerClassModules, 0) : 0}
                                     </div>
                                     <div className="text-sm text-gray-500">Total Modules Assigned</div>
                                 </div>
                                 <div className="text-center">
                                     <div className="text-3xl font-bold text-green-600">
-                                        {classes.reduce((sum, cls) => sum + cls._count.timetables, 0)}
+                                        {Array.isArray(classes) ? classes.reduce((sum, cls) => sum + cls._count.timetables, 0) : 0}
                                     </div>
                                     <div className="text-sm text-gray-500">Timetable Entries</div>
                                 </div>
@@ -735,7 +735,7 @@ export default function AddClassesPage() {
                                 </div>
                             </div>
 
-                            {classes.length === 0 ? (
+                            {Array.isArray(classes) && classes.length === 0 ? (
                                 <div className="text-center py-8">
                                     <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
                                     <h3 className="mt-2 text-sm font-medium text-gray-900">No classes added yet</h3>
@@ -752,106 +752,88 @@ export default function AddClassesPage() {
                                     </p>
                                 </div>
                             ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Class
-                                                </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Assign Subjects/Modules
-                                                </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Edit
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {filteredClasses.map((cls) => (
-                                                <tr key={cls.id} className="hover:bg-gray-50">
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="flex items-center">
-                                                            <div className="flex-shrink-0 h-10 w-10">
-                                                                <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                                                                    <BookOpen className="h-5 w-5 text-green-600" />
-                                                                </div>
-                                                            </div>
-                                                            <div className="ml-4">
-                                                                <div className="text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600" onClick={() => handleClassDetails(cls)}>
-                                                                    {cls.name}
-                                                                </div>
-                                                                <div className="flex items-center space-x-2 mt-1">
-                                                                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                                        {cls.level}
-                                                                    </span>
-                                                                    {cls.stream && (
-                                                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                                                                            {cls.stream}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                <div className="text-xs text-gray-500 mt-1">
-                                                                    {cls.level.startsWith('L') ? cls._count.trainerClassModules : cls._count.subjects} {cls.level.startsWith('L') ? 'modules' : 'subjects'} • {cls._count.timetables} timetables
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <button
-                                                            onClick={() => handleAssignToClass(cls)}
-                                                            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                                                        >
-                                                            <Plus className="h-4 w-4 mr-2" />
-                                                            Assign
-                                                        </button>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                        <div className="flex items-center space-x-2">
-                                                            <button
-                                                                onClick={() => {
-                                                                    setSelectedClassForAssignment(cls)
-                                                                    fetchCurrentAssignments(cls.id)
-                                                                    setShowEditAssignments(true)
-                                                                }}
-                                                                className="text-green-600 hover:text-green-900"
-                                                                title="View/Edit Assignments"
-                                                            >
-                                                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                                                </svg>
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleEditClass(cls)}
-                                                                className="text-blue-600 hover:text-blue-900"
-                                                                title="Edit Class"
-                                                            >
-                                                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                                </svg>
-                                                            </button>
-                                                            <button
-                                                                onClick={() => deleteClass(cls.id, cls.name)}
-                                                                className="text-red-600 hover:text-red-900"
-                                                                title="Delete Class"
-                                                            >
-                                                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                                    {filteredClasses.map((cls) => (
+                                        <div key={cls.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                            <div className="flex items-center mb-3">
+                                                <div className="flex-shrink-0 h-10 w-10">
+                                                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                                        <BookOpen className="h-5 w-5 text-green-600" />
+                                                    </div>
+                                                </div>
+                                                <div className="ml-3 flex-1">
+                                                    <div className="text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600" onClick={() => handleClassDetails(cls)}>
+                                                        {cls.name}
+                                                    </div>
+                                                    <div className="flex items-center space-x-2 mt-1">
+                                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                            {cls.level}
+                                                        </span>
+                                                        {cls.stream && (
+                                                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                                {cls.stream}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="text-xs text-gray-500 mb-3">
+                                                {cls.level.startsWith('L') ? cls._count.trainerClassModules : cls._count.subjects} {cls.level.startsWith('L') ? 'modules' : 'subjects'} • {cls._count.timetables} timetables
+                                            </div>
+
+                                            <div className="flex flex-col space-y-2">
+                                                <button
+                                                    onClick={() => handleAssignToClass(cls)}
+                                                    className="inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                                                >
+                                                    <Plus className="h-4 w-4 mr-2" />
+                                                    Assign
+                                                </button>
+
+                                                <div className="flex items-center justify-center space-x-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedClassForAssignment(cls)
+                                                            fetchCurrentAssignments(cls.id)
+                                                            setShowEditAssignments(true)
+                                                        }}
+                                                        className="text-green-600 hover:text-green-900 p-1"
+                                                        title="View/Edit Assignments"
+                                                    >
+                                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleEditClass(cls)}
+                                                        className="text-blue-600 hover:text-blue-900 p-1"
+                                                        title="Edit Class"
+                                                    >
+                                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => deleteClass(cls.id, cls.name)}
+                                                        className="text-red-600 hover:text-red-900 p-1"
+                                                        title="Delete Class"
+                                                    >
+                                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
                     </div>
 
                     {/* Empty State */}
-                    {classes.length === 0 && (
+                    {Array.isArray(classes) && classes.length === 0 && (
                         <div className="text-center py-12">
                             <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
                             <h3 className="mt-2 text-sm font-medium text-gray-900">No classes added yet</h3>

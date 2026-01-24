@@ -16,44 +16,58 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        // Get all teachers across all schools with their school information
-        const teachers = await db.user.findMany({
-            where: {
-                role: 'TEACHER'
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                teachingStreams: true,
-                maxWeeklyHours: true,
-                unavailableDays: true,
-                unavailablePeriods: true,
-                isActive: true,
-                createdAt: true,
-                schoolId: true,
-                school: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        type: true,
-                        status: true
+        const { searchParams } = new URL(request.url)
+        const page = parseInt(searchParams.get('page') || '1')
+        const limit = parseInt(searchParams.get('limit') || '10')
+        const skip = (page - 1) * limit
+
+        // Get paginated teachers across all schools with their school information
+        const [teachers, totalCount] = await Promise.all([
+            db.user.findMany({
+                where: {
+                    role: 'TEACHER'
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true,
+                    teachingStreams: true,
+                    maxWeeklyHours: true,
+                    unavailableDays: true,
+                    unavailablePeriods: true,
+                    isActive: true,
+                    createdAt: true,
+                    schoolId: true,
+                    school: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            type: true,
+                            status: true
+                        }
+                    },
+                    _count: {
+                        select: {
+                            teacherSubjects: true,
+                            trainerModules: true,
+                            timetablesAsTeacher: true
+                        }
                     }
                 },
-                _count: {
-                    select: {
-                        teacherSubjects: true,
-                        trainerModules: true,
-                        timetablesAsTeacher: true
-                    }
+                orderBy: [
+                    { name: 'asc' }
+                ],
+                skip,
+                take: limit
+            }),
+            db.user.count({
+                where: {
+                    role: 'TEACHER'
                 }
-            },
-            orderBy: [
-                { name: 'asc' }
-            ]
-        })
+            })
+        ])
 
         // Group teachers by school for easier display
         const teachersBySchool: Record<string, any> = {}
@@ -77,8 +91,14 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
             teachers,
             teachersBySchool,
-            totalTeachers: teachers.length,
-            totalSchools: Object.keys(teachersBySchool).length
+            totalTeachers: totalCount,
+            totalSchools: Object.keys(teachersBySchool).length,
+            pagination: {
+                page,
+                limit,
+                totalCount,
+                totalPages: Math.ceil(totalCount / limit)
+            }
         })
 
     } catch (error) {

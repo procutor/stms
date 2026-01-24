@@ -116,7 +116,7 @@ function ClassTimetablesContent() {
             const response = await fetch('/api/classes')
             if (response.ok) {
                 const data = await response.json()
-                setClasses(data)
+                setClasses(data.classes || [])
             }
         } catch (error) {
             console.error('Error fetching classes:', error)

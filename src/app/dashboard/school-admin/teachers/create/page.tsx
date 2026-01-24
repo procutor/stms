@@ -2,9 +2,11 @@
 
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { UserCheck, LogOut, ArrowLeft, Save, Upload, Download, FileSpreadsheet, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
+import SchoolAdminSidebar from '@/components/layout/SchoolAdminSidebar'
+import ProfileDropdown from '@/components/layout/ProfileDropdown'
 
 export default function CreateTeacher() {
     const { data: session, status } = useSession()
@@ -13,11 +15,32 @@ export default function CreateTeacher() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
     const [uploadResult, setUploadResult] = useState<any>(null)
+    const [school, setSchool] = useState<any>(null)
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         phone: ''
     })
+
+    useEffect(() => {
+        const fetchSchool = async () => {
+            if (session?.user?.schoolId) {
+                try {
+                    const response = await fetch(`/api/schools/${session.user.schoolId}`)
+                    if (response.ok) {
+                        const schoolData = await response.json()
+                        setSchool(schoolData)
+                    }
+                } catch (error) {
+                    console.error('Error fetching school:', error)
+                }
+            }
+        }
+
+        if (session?.user?.schoolId) {
+            fetchSchool()
+        }
+    }, [session?.user?.schoolId])
 
     const handleLogout = async () => {
         await signOut({ redirect: false })
@@ -168,9 +191,14 @@ export default function CreateTeacher() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow">
+        <div className="min-h-screen bg-slate-50">
+            {/* Fixed Sidebar */}
+            <SchoolAdminSidebar />
+
+            {/* Main Content */}
+            <div className="ml-64 flex flex-col min-h-screen">
+                {/* Header */}
+                <header className="bg-white shadow-lg">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center py-6">
                         <div className="flex items-center space-x-4">
@@ -192,9 +220,18 @@ export default function CreateTeacher() {
                             </div>
                         </div>
                         <div className="flex items-center space-x-4">
-                            <span className="text-sm text-gray-700">
-                                Welcome, {session.user.name}
-                            </span>
+                            <ProfileDropdown
+                                user={{
+                                    id: session.user.id,
+                                    name: session.user.name || '',
+                                    email: session.user.email || '',
+                                    role: session.user.role,
+                                    schoolId: session.user.schoolId,
+                                    createdAt: '', // We don't have this in session
+                                    updatedAt: ''  // We don't have this in session
+                                }}
+                                school={school}
+                            />
                             <button
                                 onClick={handleLogout}
                                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
@@ -490,6 +527,7 @@ export default function CreateTeacher() {
                     </div>
                 </div>
             </main>
+            </div>
         </div>
     )
 }

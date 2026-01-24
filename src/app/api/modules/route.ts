@@ -115,23 +115,37 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        const modules = await db.module.findMany({
-            where: {
-                schoolId: session.user.schoolId
-            },
-            include: {
-                _count: {
-                    select: {
-                        trainers: true,
-                        timetables: true
+        const { searchParams } = new URL(request.url)
+        const page = parseInt(searchParams.get('page') || '1')
+        const limit = parseInt(searchParams.get('limit') || '10')
+        const skip = (page - 1) * limit
+
+        const [modules, totalCount] = await Promise.all([
+            db.module.findMany({
+                where: {
+                    schoolId: session.user.schoolId
+                },
+                include: {
+                    _count: {
+                        select: {
+                            trainers: true,
+                            timetables: true
+                        }
                     }
+                },
+                orderBy: [
+                    { level: 'asc' },
+                    { name: 'asc' }
+                ] as any,
+                skip,
+                take: limit
+            }),
+            db.module.count({
+                where: {
+                    schoolId: session.user.schoolId
                 }
-            },
-            orderBy: [
-                { level: 'asc' },
-                { name: 'asc' }
-            ] as any
-        })
+            })
+        ])
 
         return NextResponse.json(modules)
 

@@ -3,16 +3,16 @@
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Calendar, Users, BookOpen, Clock, LogOut, Plus, FileText, Wrench, Upload, MapPin, Phone, Mail, Building2, ChevronDown, ChevronUp, Edit, Save, X, User } from 'lucide-react'
+import { Calendar, Users, BookOpen, Clock, LogOut, Plus, FileText, Wrench, Upload, Trash2, Edit } from 'lucide-react'
 import Link from 'next/link'
 import SchoolAdminSidebar from '@/components/layout/SchoolAdminSidebar'
+import ProfileDropdown from '@/components/layout/ProfileDropdown'
 
 interface DashboardStats {
     totalTeachers: number
     totalClasses: number
     totalModules: number
     totalSubjects: number
-    totalTimetables: number
 }
 
 interface School {
@@ -27,6 +27,7 @@ interface School {
     phone?: string
     status: string
     approvedAt?: string
+    createdAt: string
 }
 
 
@@ -38,19 +39,13 @@ export default function SchoolAdminDashboard() {
         totalTeachers: 0,
         totalClasses: 0,
         totalModules: 0,
-        totalSubjects: 0,
-        totalTimetables: 0
+        totalSubjects: 0
     })
     const [isLoading, setIsLoading] = useState(true)
-    
+
     // School info state
     const [schoolInfo, setSchoolInfo] = useState<School | null>(null)
-    const [isProfileExpanded, setIsProfileExpanded] = useState(false)
-    const [isSchoolInfoLoading, setIsSchoolInfoLoading] = useState(true)
-    const [isEditMode, setIsEditMode] = useState(false)
-    const [editedSchoolInfo, setEditedSchoolInfo] = useState<School | null>(null)
-    const [isUpdating, setIsUpdating] = useState(false)
-    
+
     // Data states for detailed views
     const [subjects, setSubjects] = useState<any[]>([])
     const [classes, setClasses] = useState<any[]>([])
@@ -65,6 +60,15 @@ export default function SchoolAdminDashboard() {
         }
     }, [session])
 
+    // Show loading while session is being determined
+    if (status === 'loading') {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-lg">Loading...</div>
+            </div>
+        )
+    }
+
     const fetchSchoolInfo = async () => {
         if (session?.user?.schoolId) {
             try {
@@ -73,65 +77,10 @@ export default function SchoolAdminDashboard() {
                     const schools = await response.json()
                     const currentSchool = schools.find((school: School) => school.id === session.user.schoolId)
                     setSchoolInfo(currentSchool || null)
-                    setEditedSchoolInfo(currentSchool || null)
                 }
             } catch (error) {
                 console.error('Error fetching school info:', error)
             }
-        }
-        setIsSchoolInfoLoading(false)
-    }
-
-    const updateSchoolInfo = async () => {
-        if (!editedSchoolInfo || !session?.user?.schoolId) return
-        
-        setIsUpdating(true)
-        try {
-            const response = await fetch(`/api/schools/${session.user.schoolId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: editedSchoolInfo.name,
-                    address: editedSchoolInfo.address,
-                    province: editedSchoolInfo.province,
-                    district: editedSchoolInfo.district,
-                    sector: editedSchoolInfo.sector,
-                    email: editedSchoolInfo.email,
-                    phone: editedSchoolInfo.phone,
-                }),
-            })
-
-            if (response.ok) {
-                const updatedSchool = await response.json()
-                setSchoolInfo(updatedSchool)
-                setEditedSchoolInfo(updatedSchool)
-                setIsEditMode(false)
-                alert('School information updated successfully!')
-            } else {
-                const error = await response.json()
-                alert('Failed to update school information: ' + error.error)
-            }
-        } catch (error) {
-            console.error('Error updating school info:', error)
-            alert('An error occurred while updating school information.')
-        } finally {
-            setIsUpdating(false)
-        }
-    }
-
-    const cancelEdit = () => {
-        setEditedSchoolInfo(schoolInfo)
-        setIsEditMode(false)
-    }
-
-    const handleInputChange = (field: keyof School, value: string) => {
-        if (editedSchoolInfo) {
-            setEditedSchoolInfo({
-                ...editedSchoolInfo,
-                [field]: value
-            })
         }
     }
 
@@ -145,7 +94,7 @@ export default function SchoolAdminDashboard() {
                     if (subjects.length === 0) {
                         const response = await fetch('/api/subjects')
                         if (response.ok) {
-                            setSubjects(await response.json())
+                            setSubjects((await response.json()).subjects || [])
                         }
                     }
                     break
@@ -153,7 +102,7 @@ export default function SchoolAdminDashboard() {
                     if (classes.length === 0) {
                         const response = await fetch('/api/classes')
                         if (response.ok) {
-                            setClasses(await response.json())
+                            setClasses((await response.json()).classes || [])
                         }
                     }
                     break
@@ -161,7 +110,7 @@ export default function SchoolAdminDashboard() {
                     if (modules.length === 0) {
                         const response = await fetch('/api/modules')
                         if (response.ok) {
-                            setModules(await response.json())
+                            setModules(await response.json() || [])
                         }
                     }
                     break
@@ -177,7 +126,7 @@ export default function SchoolAdminDashboard() {
                     if (timetables.length === 0) {
                         const response = await fetch('/api/timetables')
                         if (response.ok) {
-                            setTimetables(await response.json())
+                            setTimetables((await response.json()).timetables || [])
                         }
                     }
                     break
@@ -187,34 +136,101 @@ export default function SchoolAdminDashboard() {
         }
     }
 
+    const deleteSubject = async (subjectId: string) => {
+        if (!confirm('Are you sure you want to delete this subject?')) return
+
+        try {
+            const response = await fetch(`/api/subjects/${subjectId}`, {
+                method: 'DELETE'
+            })
+
+            if (response.ok) {
+                // Remove from local state
+                setSubjects(subjects.filter(s => s.id !== subjectId))
+                // Update stats
+                setStats(prev => ({ ...prev, totalSubjects: prev.totalSubjects - 1 }))
+                alert('Subject deleted successfully')
+            } else {
+                const error = await response.json()
+                alert('Failed to delete subject: ' + error.error)
+            }
+        } catch (error) {
+            console.error('Error deleting subject:', error)
+            alert('An error occurred while deleting the subject')
+        }
+    }
+
+    const deleteModule = async (moduleId: string) => {
+        if (!confirm('Are you sure you want to delete this module?')) return
+
+        try {
+            const response = await fetch(`/api/modules/${moduleId}`, {
+                method: 'DELETE'
+            })
+
+            if (response.ok) {
+                // Remove from local state
+                setModules(modules.filter(m => m.id !== moduleId))
+                // Update stats
+                setStats(prev => ({ ...prev, totalModules: prev.totalModules - 1 }))
+                alert('Module deleted successfully')
+            } else {
+                const error = await response.json()
+                alert('Failed to delete module: ' + error.error)
+            }
+        } catch (error) {
+            console.error('Error deleting module:', error)
+            alert('An error occurred while deleting the module')
+        }
+    }
+
+    const deleteTeacher = async (teacherId: string) => {
+        if (!confirm('Are you sure you want to delete this teacher?')) return
+
+        try {
+            const response = await fetch(`/api/teachers/${teacherId}`, {
+                method: 'DELETE'
+            })
+
+            if (response.ok) {
+                // Remove from local state
+                setTeachers(teachers.filter(t => t.id !== teacherId))
+                // Update stats
+                setStats(prev => ({ ...prev, totalTeachers: prev.totalTeachers - 1 }))
+                alert('Teacher deleted successfully')
+            } else {
+                const error = await response.json()
+                alert('Failed to delete teacher: ' + error.error)
+            }
+        } catch (error) {
+            console.error('Error deleting teacher:', error)
+            alert('An error occurred while deleting the teacher')
+        }
+    }
+
     const fetchDashboardStats = async () => {
         try {
             // Fetch teachers count
             const teachersResponse = await fetch('/api/teachers')
             const teachersData = teachersResponse.ok ? await teachersResponse.json() : []
-            
+
             // Fetch subjects count
             const subjectsResponse = await fetch('/api/subjects')
-            const subjectsData = subjectsResponse.ok ? await subjectsResponse.json() : []
-            
+            const subjectsData = subjectsResponse.ok ? await subjectsResponse.json() : { subjects: [] }
+
             // Fetch classes count
             const classesResponse = await fetch('/api/classes')
-            const classesData = classesResponse.ok ? await classesResponse.json() : []
-            
+            const classesData = classesResponse.ok ? await classesResponse.json() : { classes: [] }
+
             // Fetch modules count
             const modulesResponse = await fetch('/api/modules')
             const modulesData = modulesResponse.ok ? await modulesResponse.json() : []
-            
-            // Fetch timetables count
-            const timetablesResponse = await fetch('/api/timetables')
-            const timetablesData = timetablesResponse.ok ? await timetablesResponse.json() : []
 
             setStats({
                 totalTeachers: teachersData.length,
-                totalClasses: classesData.length,
+                totalClasses: classesData.classes?.length || 0,
                 totalModules: modulesData.length,
-                totalSubjects: subjectsData.length,
-                totalTimetables: timetablesData.length
+                totalSubjects: subjectsData.subjects?.length || 0
             })
         } catch (error) {
             console.error('Error fetching dashboard stats:', error)
@@ -254,7 +270,7 @@ export default function SchoolAdminDashboard() {
         router.push('/auth/signin')
     }
 
-    if (status === 'loading' || isLoading) {
+    if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-lg">Loading...</div>
@@ -305,275 +321,24 @@ export default function SchoolAdminDashboard() {
                                     School Admin - {session.user.schoolType}
                                 </p>
                             </div>
-                            <div className="flex items-center space-x-6">
-                                {/* School Profile Section */}
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setIsProfileExpanded(!isProfileExpanded)}
-                                        className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 transition-colors"
-                                    >
-                                        <div className="relative">
-                                            <User className="h-8 w-8 text-gray-600 bg-gray-100 rounded-full p-1.5" />
-                                            <div className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-500 border-2 border-white rounded-full"></div>
-                                        </div>
-                                        <div className="text-left">
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {session.user.name}
-                                            </div>
-                                            {!isSchoolInfoLoading && schoolInfo && (
-                                                <div className="text-xs text-gray-500">
-                                                    {schoolInfo.name}
-                                                </div>
-                                            )}
-                                        </div>
-                                        {isProfileExpanded ? (
-                                            <ChevronUp className="h-4 w-4 text-gray-500" />
-                                        ) : (
-                                            <ChevronDown className="h-4 w-4 text-gray-500" />
-                                        )}
-                                    </button>
-
-                                    {/* Expanded Profile Information */}
-                                    {isProfileExpanded && !isSchoolInfoLoading && (schoolInfo || editedSchoolInfo) && (
-                                        <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                                            <div className="p-4">
-                                                <div className="space-y-4">
-                                                    <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-                                                        <h4 className="font-semibold text-gray-900 flex items-center">
-                                                            <Building2 className="h-4 w-4 mr-2" />
-                                                            School Information
-                                                        </h4>
-                                                        {!isEditMode ? (
-                                                            <button
-                                                                onClick={() => setIsEditMode(true)}
-                                                                className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 text-sm"
-                                                            >
-                                                                <Edit className="h-3 w-3" />
-                                                                <span>Edit</span>
-                                                            </button>
-                                                        ) : (
-                                                            <div className="flex items-center space-x-2">
-                                                                <button
-                                                                    onClick={updateSchoolInfo}
-                                                                    disabled={isUpdating}
-                                                                    className="flex items-center space-x-1 text-green-600 hover:text-green-800 text-sm disabled:opacity-50"
-                                                                >
-                                                                    <Save className="h-3 w-3" />
-                                                                    <span>{isUpdating ? 'Saving...' : 'Save'}</span>
-                                                                </button>
-                                                                <button
-                                                                    onClick={cancelEdit}
-                                                                    disabled={isUpdating}
-                                                                    className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 text-sm disabled:opacity-50"
-                                                                >
-                                                                    <X className="h-3 w-3" />
-                                                                    <span>Cancel</span>
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    {isEditMode && editedSchoolInfo ? (
-                                                        <div className="grid grid-cols-1 gap-3 text-sm">
-                                                            <div className="flex items-center space-x-2">
-                                                                <Building2 className="h-3 w-3 text-gray-400" />
-                                                                <span className="font-medium text-gray-600 w-16">Type:</span>
-                                                                <span className="uppercase text-gray-900 bg-gray-100 px-2 py-1 rounded">{editedSchoolInfo.type}</span>
-                                                            </div>
-
-                                                            <div className="flex items-start space-x-2">
-                                                                <Building2 className="h-3 w-3 text-gray-400 mt-1" />
-                                                                <div className="flex-1">
-                                                                    <div className="font-medium text-gray-600 mb-1">Name:</div>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={editedSchoolInfo.name || ''}
-                                                                        onChange={(e) => handleInputChange('name', e.target.value)}
-                                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-gray-900"
-                                                                        placeholder="School name"
-                                                                    />
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex items-start space-x-2">
-                                                                <MapPin className="h-3 w-3 text-gray-400 mt-1" />
-                                                                <div className="flex-1">
-                                                                    <div className="font-medium text-gray-600 mb-1">Address:</div>
-                                                                    <textarea
-                                                                        value={editedSchoolInfo.address || ''}
-                                                                        onChange={(e) => handleInputChange('address', e.target.value)}
-                                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-gray-900"
-                                                                        placeholder="School address"
-                                                                        rows={2}
-                                                                    />
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="grid grid-cols-3 gap-2">
-                                                                <div className="flex items-start space-x-1">
-                                                                    <MapPin className="h-3 w-3 text-gray-400 mt-1" />
-                                                                    <div className="flex-1">
-                                                                        <div className="font-medium text-gray-600 mb-1 text-xs">Sector:</div>
-                                                                        <input
-                                                                            type="text"
-                                                                            value={editedSchoolInfo.sector || ''}
-                                                                            onChange={(e) => handleInputChange('sector', e.target.value)}
-                                                                            className="w-full px-2 py-1 border border-gray-300 rounded text-gray-900 text-xs"
-                                                                            placeholder="Sector"
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex items-start space-x-1">
-                                                                    <MapPin className="h-3 w-3 text-gray-400 mt-1" />
-                                                                    <div className="flex-1">
-                                                                        <div className="font-medium text-gray-600 mb-1 text-xs">District:</div>
-                                                                        <input
-                                                                            type="text"
-                                                                            value={editedSchoolInfo.district || ''}
-                                                                            onChange={(e) => handleInputChange('district', e.target.value)}
-                                                                            className="w-full px-2 py-1 border border-gray-300 rounded text-gray-900 text-xs"
-                                                                            placeholder="District"
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex items-start space-x-1">
-                                                                    <MapPin className="h-3 w-3 text-gray-400 mt-1" />
-                                                                    <div className="flex-1">
-                                                                        <div className="font-medium text-gray-600 mb-1 text-xs">Province:</div>
-                                                                        <input
-                                                                            type="text"
-                                                                            value={editedSchoolInfo.province || ''}
-                                                                            onChange={(e) => handleInputChange('province', e.target.value)}
-                                                                            className="w-full px-2 py-1 border border-gray-300 rounded text-gray-900 text-xs"
-                                                                            placeholder="Province"
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex items-center space-x-2">
-                                                                <Mail className="h-3 w-3 text-gray-400" />
-                                                                <span className="font-medium text-gray-600 w-16">Email:</span>
-                                                                <input
-                                                                    type="email"
-                                                                    value={editedSchoolInfo.email || ''}
-                                                                    onChange={(e) => handleInputChange('email', e.target.value)}
-                                                                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-gray-900"
-                                                                    placeholder="Email"
-                                                                />
-                                                            </div>
-
-                                                            <div className="flex items-center space-x-2">
-                                                                <Phone className="h-3 w-3 text-gray-400" />
-                                                                <span className="font-medium text-gray-600 w-16">Phone:</span>
-                                                                <input
-                                                                    type="tel"
-                                                                    value={editedSchoolInfo.phone || ''}
-                                                                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                                                                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-gray-900"
-                                                                    placeholder="Phone number"
-                                                                />
-                                                            </div>
-
-                                                            <div className="flex items-center space-x-2">
-                                                                <span className="font-medium text-gray-600 w-16">Status:</span>
-                                                                <span className={`px-2 py-1 rounded-full text-xs ${
-                                                                    editedSchoolInfo.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                                                    editedSchoolInfo.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                                                    editedSchoolInfo.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                                                                    'bg-gray-100 text-gray-800'
-                                                                }`}>
-                                                                    {editedSchoolInfo.status}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    ) : schoolInfo ? (
-                                                        <div className="grid grid-cols-1 gap-2 text-sm">
-                                                            <div className="flex items-center space-x-2">
-                                                                <Building2 className="h-3 w-3 text-gray-400" />
-                                                                <span className="font-medium text-gray-600">Type:</span>
-                                                                <span className="uppercase text-gray-900">{schoolInfo.type}</span>
-                                                            </div>
-
-                                                            <div className="flex items-start space-x-2">
-                                                                <Building2 className="h-3 w-3 text-gray-400 mt-0.5" />
-                                                                <div>
-                                                                    <div className="font-medium text-gray-600">Name:</div>
-                                                                    <div className="text-gray-900 ml-4">{schoolInfo.name}</div>
-                                                                </div>
-                                                            </div>
-
-                                                            {schoolInfo.address && (
-                                                                <div className="flex items-start space-x-2">
-                                                                    <MapPin className="h-3 w-3 text-gray-400 mt-0.5" />
-                                                                    <div>
-                                                                        <div className="font-medium text-gray-600">Address:</div>
-                                                                        <div className="text-gray-900 ml-4">{schoolInfo.address}</div>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-
-                                                            {(schoolInfo.province || schoolInfo.district || schoolInfo.sector) && (
-                                                                <div className="flex items-start space-x-2">
-                                                                    <MapPin className="h-3 w-3 text-gray-400 mt-0.5" />
-                                                                    <div>
-                                                                        <div className="font-medium text-gray-600">Location:</div>
-                                                                        <div className="text-gray-900 ml-4">
-                                                                            {schoolInfo.sector && <div>Sector: {schoolInfo.sector}</div>}
-                                                                            {schoolInfo.district && <div>District: {schoolInfo.district}</div>}
-                                                                            {schoolInfo.province && <div>Province: {schoolInfo.province}</div>}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-
-                                                            <div className="flex items-center space-x-2">
-                                                                <Mail className="h-3 w-3 text-gray-400" />
-                                                                <span className="font-medium text-gray-600">Email:</span>
-                                                                <span className="text-gray-900 break-all">{schoolInfo.email}</span>
-                                                            </div>
-
-                                                            {schoolInfo.phone && (
-                                                                <div className="flex items-center space-x-2">
-                                                                    <Phone className="h-3 w-3 text-gray-400" />
-                                                                    <span className="font-medium text-gray-600">Phone:</span>
-                                                                    <span className="text-gray-900">{schoolInfo.phone}</span>
-                                                                </div>
-                                                            )}
-
-                                                            <div className="flex items-center space-x-2">
-                                                                <span className="font-medium text-gray-600">Status:</span>
-                                                                <span className={`px-2 py-0.5 rounded-full text-xs ${
-                                                                    schoolInfo.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                                                    schoolInfo.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                                                    schoolInfo.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                                                                    'bg-gray-100 text-gray-800'
-                                                                }`}>
-                                                                    {schoolInfo.status}
-                                                                </span>
-                                                            </div>
-
-                                                            {schoolInfo.approvedAt && (
-                                                                <div className="flex items-center space-x-2">
-                                                                    <span className="font-medium text-gray-600">Approved:</span>
-                                                                    <span className="text-gray-900">{new Date(schoolInfo.approvedAt).toLocaleDateString()}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ) : null}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {isSchoolInfoLoading && (
-                                        <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
-                                            <div className="text-sm text-gray-500">Loading school information...</div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Sign Out Button - Right of Profile */}
+                            <div className="flex items-center space-x-4">
+                                <ProfileDropdown
+                                    user={{
+                                        id: session.user.id,
+                                        name: session.user.name || '',
+                                        email: session.user.email || '',
+                                        role: session.user.role,
+                                        schoolId: session.user.schoolId,
+                                        createdAt: '',
+                                        updatedAt: ''
+                                    }}
+                                    school={schoolInfo || undefined}
+                                    onSchoolUpdate={setSchoolInfo}
+                                    onUserUpdate={(updatedUser) => {
+                                        // Update the session user data if needed
+                                        // This would typically require a session refresh
+                                    }}
+                                />
                                 <button
                                     onClick={handleLogout}
                                     className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium shadow-md"
@@ -722,38 +487,6 @@ export default function SchoolAdminDashboard() {
                                 </button>
                             </div>
 
-                            <div className="flex-shrink-0 w-56">
-                                <button
-                                    onClick={() => handleCategorySelect('timetables')}
-                                    className={`bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-lg transition-all text-left block w-full ${
-                                        selectedCategory === 'timetables' ? 'ring-2 ring-blue-500 bg-blue-50' : ''
-                                    }`}
-                                >
-                                    <div className="p-6">
-                                        <div className="flex items-center">
-                                            <div className="flex-shrink-0">
-                                                <Clock className={`h-8 w-8 ${
-                                                    selectedCategory === 'timetables' ? 'text-blue-600' : 'text-gray-400'
-                                                }`} />
-                                            </div>
-                                            <div className="ml-5 w-0 flex-1">
-                                                <dl>
-                                                    <dt className={`text-base font-medium truncate ${
-                                                        selectedCategory === 'timetables' ? 'text-blue-700' : 'text-gray-700'
-                                                    }`}>
-                                                        Generated Timetables
-                                                    </dt>
-                                                    <dd className={`text-2xl font-bold ${
-                                                        selectedCategory === 'timetables' ? 'text-blue-900' : 'text-gray-900'
-                                                    }`}>
-                                                        {stats.totalTimetables}
-                                                    </dd>
-                                                </dl>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </button>
-                            </div>
                         </div>
 
                         {/* Detailed View Section */}
@@ -790,6 +523,7 @@ export default function SchoolAdminDashboard() {
                                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject Name</th>
                                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
                                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Periods/Week</th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -798,6 +532,24 @@ export default function SchoolAdminDashboard() {
                                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{subject.name}</td>
                                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{subject.code}</td>
                                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{subject.periodsPerWeek}</td>
+                                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                                    <div className="flex space-x-2">
+                                                                        <button
+                                                                            onClick={() => router.push(`/dashboard/school-admin/subjects/${subject.id}/edit`)}
+                                                                            className="text-blue-600 hover:text-blue-900 p-1"
+                                                                            title="Edit subject"
+                                                                        >
+                                                                            <Edit className="h-4 w-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => deleteSubject(subject.id)}
+                                                                            className="text-red-600 hover:text-red-900 p-1"
+                                                                            title="Delete subject"
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
                                                             </tr>
                                                         ))}
                                                     </tbody>
@@ -964,6 +716,7 @@ export default function SchoolAdminDashboard() {
                                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Level</th>
                                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
                                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hours/Week</th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -982,6 +735,24 @@ export default function SchoolAdminDashboard() {
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{module.totalHours}</td>
+                                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                                    <div className="flex space-x-2">
+                                                                        <button
+                                                                            onClick={() => router.push(`/dashboard/school-admin/modules/${module.id}/edit`)}
+                                                                            className="text-blue-600 hover:text-blue-900 p-1"
+                                                                            title="Edit module"
+                                                                        >
+                                                                            <Edit className="h-4 w-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => deleteModule(module.id)}
+                                                                            className="text-red-600 hover:text-red-900 p-1"
+                                                                            title="Delete module"
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
                                                             </tr>
                                                         ))}
                                                     </tbody>
@@ -1011,6 +782,7 @@ export default function SchoolAdminDashboard() {
                                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
                                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -1025,6 +797,24 @@ export default function SchoolAdminDashboard() {
                                                                     }`}>
                                                                         {teacher.isActive ? 'Active' : 'Inactive'}
                                                                     </span>
+                                                                </td>
+                                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                                    <div className="flex space-x-2">
+                                                                        <button
+                                                                            onClick={() => router.push(`/dashboard/school-admin/add-teacher?edit=${teacher.id}`)}
+                                                                            className="text-blue-600 hover:text-blue-900 p-1"
+                                                                            title="Edit teacher"
+                                                                        >
+                                                                            <Edit className="h-4 w-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => deleteTeacher(teacher.id)}
+                                                                            className="text-red-600 hover:text-red-900 p-1"
+                                                                            title="Delete teacher"
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                        </button>
+                                                                    </div>
                                                                 </td>
                                                             </tr>
                                                         ))}
@@ -1104,16 +894,11 @@ export default function SchoolAdminDashboard() {
                                                     <span className="text-sm font-bold text-purple-600">{stats.totalClasses}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-sm font-medium text-gray-600">Generated Timetables:</span>
-                                                    <span className="text-sm font-bold text-orange-600">{stats.totalTimetables}</span>
+                                                    <span className="text-sm font-medium text-gray-600">Total Modules:</span>
+                                                    <span className="text-sm font-bold text-green-600">{stats.totalModules}</span>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                                        <p className="text-sm text-blue-700">
-                                            <span className="font-medium">Click on any category above</span> to view detailed information. Selected categories will be highlighted in blue.
-                                        </p>
                                     </div>
                                 </div>
                             </div>

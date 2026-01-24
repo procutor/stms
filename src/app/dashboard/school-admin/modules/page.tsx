@@ -47,7 +47,7 @@ export default function ModulesList() {
             const response = await fetch('/api/modules')
             if (response.ok) {
                 const data = await response.json()
-                setModules(data)
+                setModules(data || [])
             }
         } catch (error) {
             console.error('Error fetching modules:', error)

@@ -3,10 +3,12 @@
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { Calendar, LogOut, ArrowLeft, Play, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { SinglePDFExportButton, BatchPDFExportButton } from '@/components/pdf/PDFExportButton'
 import { TimetableEntry } from '@/lib/pdf-export'
+import SchoolAdminSidebar from '@/components/layout/SchoolAdminSidebar'
 
 interface Class {
     id: string
@@ -35,6 +37,8 @@ interface GenerationResult {
 
 export default function GenerateTimetables() {
     const { data: session, status } = useSession()
+    const pathname = usePathname()
+    console.log('GenerateTimetables component rendering, pathname:', pathname)
     const router = useRouter()
     const [generationType, setGenerationType] = useState<'class' | 'teacher' | 'school'>('class')
     const [selectedClass, setSelectedClass] = useState('')
@@ -60,7 +64,7 @@ export default function GenerateTimetables() {
             const response = await fetch('/api/classes')
             if (response.ok) {
                 const data = await response.json()
-                setClasses(data)
+                setClasses(data.classes || [])
             }
         } catch (error) {
             console.error('Error fetching classes:', error)
@@ -288,9 +292,14 @@ export default function GenerateTimetables() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow">
+        <div className="min-h-screen bg-slate-50">
+            {/* Sticky Sidebar */}
+            <SchoolAdminSidebar />
+
+            {/* Main Content */}
+            <div className="ml-64 flex flex-col min-h-screen">
+                {/* Header */}
+                <header className="bg-white shadow">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center py-6">
                         <div className="flex items-center space-x-4">
@@ -617,6 +626,7 @@ export default function GenerateTimetables() {
                     </div>
                 </div>
             </main>
+            </div>
         </div>
     )
 }

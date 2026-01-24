@@ -28,6 +28,7 @@ export default function TimeSlotsManagement() {
     const router = useRouter()
     const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    console.log('TimeSlotsManagement render, status:', status, 'isLoading:', isLoading, 'timeSlots length:', timeSlots.length)
     const [showAddModal, setShowAddModal] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [formData, setFormData] = useState({
@@ -42,21 +43,28 @@ export default function TimeSlotsManagement() {
     })
 
     useEffect(() => {
+        console.log('TimeSlots useEffect triggered, session:', session?.user ? 'exists' : 'null')
         if (session?.user) {
             fetchTimeSlots()
         }
     }, [session])
 
     const fetchTimeSlots = async () => {
+        console.log('fetchTimeSlots called')
         try {
             const response = await fetch('/api/time-slots')
+            console.log('fetch response status:', response.status)
             if (response.ok) {
                 const data = await response.json()
+                console.log('fetched time slots:', data.length)
                 setTimeSlots(data)
+            } else {
+                console.error('fetch failed:', response.status)
             }
         } catch (error) {
             console.error('Error fetching time slots:', error)
         } finally {
+            console.log('setting isLoading to false')
             setIsLoading(false)
         }
     }

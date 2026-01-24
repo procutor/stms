@@ -3,7 +3,7 @@
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { BookOpen, LogOut, ArrowLeft, Code, Clock, Users, GraduationCap, Plus } from 'lucide-react'
+import { BookOpen, LogOut, ArrowLeft, Code, Clock, Users, GraduationCap, Plus, Edit, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import SchoolAdminSidebar from '@/components/layout/SchoolAdminSidebar'
 
@@ -39,7 +39,7 @@ export default function SubjectsList() {
             const response = await fetch('/api/subjects')
             if (response.ok) {
                 const data = await response.json()
-                setSubjects(data)
+                setSubjects(data.subjects)
             }
         } catch (error) {
             console.error('Error fetching subjects:', error)
@@ -53,23 +53,48 @@ export default function SubjectsList() {
         router.push('/auth/signin')
     }
 
-    const filteredAndSortedSubjects = subjects
-        .filter(subject => 
-            subject.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            subject.code.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .sort((a, b) => {
-            switch (sortBy) {
-                case 'name':
-                    return a.name.localeCompare(b.name)
-                case 'code':
-                    return a.code.localeCompare(b.code)
-                case 'periods':
-                    return b.periodsPerWeek - a.periodsPerWeek
-                default:
-                    return 0
+    const handleDeleteSubject = async (subjectId: string) => {
+        if (!confirm('Are you sure you want to delete this subject? This action cannot be undone.')) {
+            return
+        }
+
+        try {
+            const response = await fetch(`/api/subjects/${subjectId}`, {
+                method: 'DELETE'
+            })
+
+            if (response.ok) {
+                // Refresh the subjects list
+                fetchSubjects()
+            } else {
+                alert('Failed to delete subject')
             }
-        })
+        } catch (error) {
+            console.error('Error deleting subject:', error)
+            alert('Error deleting subject')
+        }
+    }
+
+    const getFilteredAndSortedSubjects = () => {
+        if (!subjects) return []
+        return subjects
+            .filter(subject =>
+                subject.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                subject.code.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+            .sort((a, b) => {
+                switch (sortBy) {
+                    case 'name':
+                        return a.name.localeCompare(b.name)
+                    case 'code':
+                        return a.code.localeCompare(b.code)
+                    case 'periods':
+                        return b.periodsPerWeek - a.periodsPerWeek
+                    default:
+                        return 0
+                }
+            })
+    }
 
     if (status === 'loading' || isLoading) {
         return (
@@ -129,7 +154,7 @@ export default function SubjectsList() {
                                         <span>Subjects List</span>
                                     </h1>
                                     <p className="text-sm text-gray-600">
-                                        {session.user.schoolName} - {filteredAndSortedSubjects.length} of {subjects.length} subjects
+                                        {session.user.schoolName} - {getFilteredAndSortedSubjects().length} of {subjects?.length || 0} subjects
                                     </p>
                                 </div>
                             </div>
@@ -202,14 +227,14 @@ export default function SubjectsList() {
                     {/* Subjects Table */}
                     <div className="bg-white shadow rounded-lg overflow-hidden">
                         <div className="px-4 py-5 sm:p-6">
-                            {filteredAndSortedSubjects.length === 0 ? (
+                            {getFilteredAndSortedSubjects().length === 0 ? (
                                 <div className="text-center py-12">
                                     <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
                                     <h3 className="mt-2 text-sm font-medium text-gray-900">
-                                        {subjects.length === 0 ? 'No subjects found' : 'No subjects match your search'}
+                                        {(subjects?.length || 0) === 0 ? 'No subjects found' : 'No subjects match your search'}
                                     </h3>
                                     <p className="mt-1 text-sm text-gray-500">
-                                        {subjects.length === 0 
+                                        {(subjects?.length || 0) === 0
                                             ? 'Subjects will appear here once they are registered in the system.'
                                             : 'Try adjusting your search criteria.'
                                         }
@@ -238,10 +263,13 @@ export default function SubjectsList() {
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Timetable Slots
                                                 </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Actions
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
-                                            {filteredAndSortedSubjects.map((subject) => (
+                                            {getFilteredAndSortedSubjects().map((subject) => (
                                                 <tr key={subject.id} className="hover:bg-gray-50">
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center">
@@ -289,6 +317,22 @@ export default function SubjectsList() {
                                                             {subject._count?.timetables || 0} slot{subject._count?.timetables !== 1 ? 's' : ''}
                                                         </span>
                                                     </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                        <div className="flex items-center space-x-2">
+                                                            <Link
+                                                                href={`/dashboard/school-admin/subjects/${subject.id}/edit`}
+                                                                className="text-indigo-600 hover:text-indigo-900 p-1 rounded-md hover:bg-indigo-50"
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Link>
+                                                            <button
+                                                                onClick={() => handleDeleteSubject(subject.id)}
+                                                                className="text-red-600 hover:text-red-900 p-1 rounded-md hover:bg-red-50"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                                 ))}
                                         </tbody>
@@ -299,7 +343,7 @@ export default function SubjectsList() {
                     </div>
 
                     {/* Summary Stats */}
-                    {subjects.length > 0 && (
+                    {(subjects?.length || 0) > 0 && (
                         <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-6">
                             <div className="bg-white overflow-hidden shadow rounded-lg">
                                 <div className="p-5">
@@ -313,7 +357,7 @@ export default function SubjectsList() {
                                                     Total Subjects
                                                 </dt>
                                                 <dd className="text-lg font-medium text-gray-900">
-                                                    {subjects.length}
+                                                    {subjects?.length || 0}
                                                 </dd>
                                             </dl>
                                         </div>
@@ -353,7 +397,7 @@ export default function SubjectsList() {
                                                     Avg. Teachers/Subject
                                                 </dt>
                                                 <dd className="text-lg font-medium text-gray-900">
-                                                    {subjects.length > 0 ? (subjects.reduce((sum, s) => sum + (s._count?.teachers || 0), 0) / subjects.length).toFixed(1) : '0'}
+                                                    {(subjects?.length || 0) > 0 ? (subjects.reduce((sum, s) => sum + (s._count?.teachers || 0), 0) / subjects.length).toFixed(1) : '0'}
                                                 </dd>
                                             </dl>
                                         </div>
@@ -373,7 +417,7 @@ export default function SubjectsList() {
                                                     Avg. Classes/Subject
                                                 </dt>
                                                 <dd className="text-lg font-medium text-gray-900">
-                                                    {subjects.length > 0 ? (subjects.reduce((sum, s) => sum + (s._count?.classSubjects || 0), 0) / subjects.length).toFixed(1) : '0'}
+                                                    {(subjects?.length || 0) > 0 ? (subjects.reduce((sum, s) => sum + (s._count?.classSubjects || 0), 0) / subjects.length).toFixed(1) : '0'}
                                                 </dd>
                                             </dl>
                                         </div>

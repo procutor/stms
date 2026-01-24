@@ -113,6 +113,12 @@ export default function SchoolAdminSidebar({ className = '' }: SchoolAdminSideba
             icon: Users,
             label: 'Daily Class Timetables',
             isActive: pathname === '/dashboard/school-admin/daily-timetables'
+        },
+        {
+            href: '/dashboard/school-admin/teachers/availability',
+            icon: Clock,
+            label: 'Teacher Availability',
+            isActive: pathname === '/dashboard/school-admin/teachers/availability'
         }
     ]
 

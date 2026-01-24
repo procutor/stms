@@ -121,7 +121,7 @@ function TeacherTimetablesContent() {
             
             if (classesRes.ok) {
                 const classesData = await classesRes.json()
-                setClasses(classesData)
+                setClasses(classesData.classes || [])
             }
             
             if (teachersRes.ok) {

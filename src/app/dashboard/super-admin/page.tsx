@@ -3,6 +3,7 @@
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import type { Session } from 'next-auth'
 import { Building2, Users, BookOpen, Calendar, CheckCircle, XCircle, Clock, Settings, Plus, LogOut, X, Mail, UserCheck } from 'lucide-react'
 
 interface School {
@@ -12,6 +13,9 @@ interface School {
     email: string
     phone: string | null
     address: string | null
+    province: string | null
+    district: string | null
+    sector: string | null
     status: string
     approvedAt: string | null
     createdAt: string
@@ -29,18 +33,29 @@ export default function SuperAdminDashboard() {
     const [schools, setSchools] = useState<School[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [showAddSchool, setShowAddSchool] = useState(false)
+    const [showEditSchool, setShowEditSchool] = useState(false)
+    const [editSchool, setEditSchool] = useState<School | null>(null)
+    const [showEditTeacher, setShowEditTeacher] = useState(false)
+    const [editTeacher, setEditTeacher] = useState<any>(null)
     const [activeTab, setActiveTab] = useState('schools')
     const [teachersData, setTeachersData] = useState<any>(null)
     const [teachersLoading, setTeachersLoading] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [schoolFilter, setSchoolFilter] = useState<'all' | 'approved' | 'pending'>('all')
     const [teacherFilter, setTeacherFilter] = useState<'all' | 'active' | 'inactive'>('all')
+    const [teacherCurrentPage, setTeacherCurrentPage] = useState(1)
+    const [teacherTotalPages, setTeacherTotalPages] = useState(1)
+    const [teacherTotalCount, setTeacherTotalCount] = useState(0)
     const [stats, setStats] = useState({
         totalSchools: 0,
         approvedSchools: 0,
         pendingSchools: 0,
         totalUsers: 0
     })
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
+    const [totalSchoolsCount, setTotalSchoolsCount] = useState(0)
+    const itemsPerPage = 10
 
     // Form state for adding new school
     const [newSchool, setNewSchool] = useState({
@@ -56,6 +71,27 @@ export default function SuperAdminDashboard() {
         adminPassword: ''
     })
 
+    // Form state for editing school
+    const [editSchoolForm, setEditSchoolForm] = useState({
+        schoolName: '',
+        schoolType: 'PRIMARY',
+        address: '',
+        province: '',
+        district: '',
+        sector: '',
+        email: '',
+        phone: ''
+    })
+
+    // Form state for editing teacher
+    const [editTeacherForm, setEditTeacherForm] = useState({
+        name: '',
+        email: '',
+        teachingStreams: '',
+        maxWeeklyHours: 40,
+        phone: ''
+    })
+
     useEffect(() => {
         if (status === 'loading') return // Still loading
         if (!session) {
@@ -66,22 +102,59 @@ export default function SuperAdminDashboard() {
             router.push('/auth/signin')
             return
         }
-        fetchSchoolsData()
-    }, [session, status, router])
+        fetchSchoolsData(currentPage)
+    }, [session, status, router, currentPage])
 
-    const fetchSchoolsData = async () => {
+    // Populate edit form when editSchool changes
+    useEffect(() => {
+        if (editSchool) {
+            setEditSchoolForm({
+                schoolName: editSchool.name,
+                schoolType: editSchool.type,
+                address: editSchool.address || '',
+                province: editSchool.province || '',
+                district: editSchool.district || '',
+                sector: editSchool.sector || '',
+                email: editSchool.email,
+                phone: editSchool.phone || ''
+            })
+        }
+    }, [editSchool])
+
+    // Populate edit form when editTeacher changes
+    useEffect(() => {
+        if (editTeacher) {
+            setEditTeacherForm({
+                name: editTeacher.name,
+                email: editTeacher.email,
+                teachingStreams: editTeacher.teachingStreams || '',
+                maxWeeklyHours: editTeacher.maxWeeklyHours,
+                phone: editTeacher.phone || ''
+            })
+        }
+    }, [editTeacher])
+
+    const fetchSchoolsData = async (page = 1) => {
         try {
-            const response = await fetch('/api/schools')
+            const params = new URLSearchParams({
+                page: page.toString(),
+                limit: itemsPerPage.toString()
+            })
+            const response = await fetch(`/api/schools?${params}`)
             if (response.ok) {
-                const schoolsData = await response.json()
-                setSchools(schoolsData)
-                
-                // Calculate stats
-                const totalSchools = schoolsData.length
-                const approvedSchools = schoolsData.filter((s: School) => s.status === 'APPROVED').length
-                const pendingSchools = schoolsData.filter((s: School) => s.status === 'PENDING').length
-                const totalUsers = schoolsData.reduce((sum: number, school: School) => sum + school._count.users, 0)
-                
+                const data = await response.json()
+                setSchools(data.schools)
+                setTotalPages(data.pagination.totalPages)
+                setTotalSchoolsCount(data.pagination.totalCount)
+                setCurrentPage(data.pagination.page)
+
+                // Calculate stats - we need all schools for accurate stats
+                // For now, we'll use the paginated data, but ideally we'd have a separate stats endpoint
+                const totalSchools = data.pagination.totalCount
+                const approvedSchools = data.schools.filter((s: School) => s.status === 'APPROVED').length
+                const pendingSchools = data.schools.filter((s: School) => s.status === 'PENDING').length
+                const totalUsers = data.schools.reduce((sum: number, school: School) => sum + school._count.users, 0)
+
                 setStats({
                     totalSchools,
                     approvedSchools,
@@ -96,13 +169,20 @@ export default function SuperAdminDashboard() {
         }
     }
 
-    const fetchTeachersData = async () => {
+    const fetchTeachersData = async (page = 1) => {
         try {
             setTeachersLoading(true)
-            const response = await fetch('/api/super-admin/teachers')
+            const params = new URLSearchParams({
+                page: page.toString(),
+                limit: itemsPerPage.toString()
+            })
+            const response = await fetch(`/api/super-admin/teachers?${params}`)
             if (response.ok) {
                 const data = await response.json()
                 setTeachersData(data)
+                setTeacherTotalPages(data.pagination.totalPages)
+                setTeacherTotalCount(data.pagination.totalCount)
+                setTeacherCurrentPage(data.pagination.page)
             }
         } catch (error) {
             console.error('Error fetching teachers:', error)
@@ -188,11 +268,51 @@ export default function SuperAdminDashboard() {
             if (response.ok) {
                 // Refresh teachers data to show updated status
                 if (teachersData) {
-                    fetchTeachersData()
+                    fetchTeachersData(teacherCurrentPage)
                 }
             }
         } catch (error) {
             console.error('Error updating teacher status:', error)
+        }
+    }
+
+    const deleteTeacher = async (teacherId: string, teacherName: string) => {
+        const confirmation = confirm(
+            `⚠️ WARNING: You are about to delete "${teacherName}"\n\n` +
+            `This action will PERMANENTLY remove the teacher and ALL their assignments including:\n` +
+            `• Subject assignments\n` +
+            `• Module assignments\n` +
+            `• Timetable entries\n\n` +
+            `This action CANNOT be undone!\n\n` +
+            `Are you absolutely sure you want to proceed?`
+        )
+
+        if (!confirmation) {
+            return
+        }
+
+        try {
+            const response = await fetch(`/api/teachers`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    teacherId
+                }),
+            })
+
+            const data = await response.json()
+
+            if (response.ok) {
+                alert(`✅ Teacher "${teacherName}" has been permanently deleted along with all their assignments.`)
+                await fetchTeachersData(teacherCurrentPage) // Refresh data
+            } else {
+                alert(`❌ Failed to delete teacher: ${data.error || 'Unknown error occurred'}`)
+            }
+        } catch (error) {
+            console.error('Error deleting teacher:', error)
+            alert('❌ An error occurred while deleting the teacher. Please try again.')
         }
     }
 
@@ -239,13 +359,88 @@ export default function SuperAdminDashboard() {
                     adminName: '',
                     adminPassword: ''
                 })
-                await fetchSchoolsData() // Refresh the schools list
+                await fetchSchoolsData(currentPage) // Refresh the schools list
             } else {
                 alert(`❌ Failed to create school: ${data.error || 'Unknown error occurred'}`)
             }
         } catch (error) {
             console.error('Error creating school:', error)
             alert('❌ An error occurred while creating the school. Please try again.')
+        }
+    }
+
+    const handleEditSchool = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!editSchool) return
+
+        try {
+            const response = await fetch('/api/schools', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    schoolId: editSchool.id,
+                    schoolName: editSchoolForm.schoolName,
+                    schoolType: editSchoolForm.schoolType,
+                    province: editSchoolForm.province,
+                    district: editSchoolForm.district,
+                    sector: editSchoolForm.sector,
+                    email: editSchoolForm.email,
+                    phone: editSchoolForm.phone,
+                    address: editSchoolForm.address
+                }),
+            })
+
+            const data = await response.json()
+
+            if (response.ok) {
+                alert(`✅ School "${editSchoolForm.schoolName}" has been updated successfully!`)
+                setShowEditSchool(false)
+                setEditSchool(null)
+                await fetchSchoolsData(currentPage) // Refresh the schools list
+            } else {
+                alert(`❌ Failed to update school: ${data.error || 'Unknown error occurred'}`)
+            }
+        } catch (error) {
+            console.error('Error updating school:', error)
+            alert('❌ An error occurred while updating the school. Please try again.')
+        }
+    }
+
+    const handleEditTeacher = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!editTeacher) return
+
+        try {
+            const response = await fetch('/api/teachers', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    teacherId: editTeacher.id,
+                    name: editTeacherForm.name,
+                    email: editTeacherForm.email,
+                    teachingStreams: editTeacherForm.teachingStreams,
+                    maxWeeklyHours: editTeacherForm.maxWeeklyHours,
+                    phone: editTeacherForm.phone
+                }),
+            })
+
+            const data = await response.json()
+
+            if (response.ok) {
+                alert(`✅ Teacher "${editTeacherForm.name}" has been updated successfully!`)
+                setShowEditTeacher(false)
+                setEditTeacher(null)
+                await fetchTeachersData(teacherCurrentPage) // Refresh the teachers list
+            } else {
+                alert(`❌ Failed to update teacher: ${data.error || 'Unknown error occurred'}`)
+            }
+        } catch (error) {
+            console.error('Error updating teacher:', error)
+            alert('❌ An error occurred while updating the teacher. Please try again.')
         }
     }
 
@@ -348,58 +543,60 @@ export default function SuperAdminDashboard() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                {/* Header */}
-                <div className="px-4 py-6 sm:px-0">
-                    <div className="border-4 border-dashed border-gray-200 rounded-lg p-8">
-                        <div className="flex justify-between items-center mb-8">
-                            <div className="text-center flex-1">
-                                <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                                    Super Admin Dashboard
-                                </h1>
-                                <p className="text-lg text-gray-600 mb-6">
-                                    Welcome, {session.user.name}! Manage all schools in the system.
-                                </p>
-                                
-                                {/* Tab Navigation */}
-                                <div className="flex justify-center space-x-4 mb-6">
-                                    <button
-                                        onClick={() => setActiveTab('schools')}
-                                        className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                                            activeTab === 'schools'
-                                                ? 'bg-primary-600 text-white'
-                                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                        }`}
-                                    >
-                                        <Building2 className="w-5 h-5 inline mr-2" />
-                                        Schools
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setActiveTab('teachers')
-                                            if (!teachersData) {
-                                                fetchTeachersData()
-                                            }
-                                        }}
-                                        className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                                            activeTab === 'teachers'
-                                                ? 'bg-primary-600 text-white'
-                                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                        }`}
-                                    >
-                                        <Users className="w-5 h-5 inline mr-2" />
-                                        Teachers & Trainers
-                                    </button>
-                                </div>
-                            </div>
+            <header className="bg-white shadow-lg sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center py-6">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-800">
+                                Super Admin Dashboard
+                            </h1>
+                            <p className="text-lg text-gray-600 mt-2">
+                                Welcome, Super Administrator! Manage all schools in the system.
+                            </p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <button
+                                onClick={() => setActiveTab('schools')}
+                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                    activeTab === 'schools'
+                                        ? 'bg-primary-600 text-white'
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}
+                            >
+                                <Building2 className="w-4 h-4 inline mr-2" />
+                                Schools
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setActiveTab('teachers')
+                                    if (!teachersData) {
+                                        fetchTeachersData(teacherCurrentPage)
+                                    }
+                                }}
+                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                    activeTab === 'teachers'
+                                        ? 'bg-primary-600 text-white'
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}
+                            >
+                                <Users className="w-4 h-4 inline mr-2" />
+                                Teachers & Trainers
+                            </button>
                             <button
                                 onClick={handleLogout}
-                                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2 ml-4"
+                                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
                             >
                                 <LogOut className="h-4 w-4" />
                                 <span>Logout</span>
                             </button>
                         </div>
+                    </div>
+                </div>
+            </header>
+            <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                {/* Header */}
+                <div className="px-4 py-6 sm:px-0">
+                    <div className="border-4 border-dashed border-gray-200 rounded-lg p-8">
 
                         {/* Search Box */}
                         <div className="mb-6">
@@ -652,6 +849,16 @@ export default function SuperAdminDashboard() {
                                                                 </div>
                                                             </td>
                                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setEditSchool(school)
+                                                                        setShowEditSchool(true)
+                                                                    }}
+                                                                    className="text-blue-600 hover:text-blue-900"
+                                                                    title="Edit school details"
+                                                                >
+                                                                    Edit
+                                                                </button>
                                                                 {school.status === 'PENDING' && (
                                                                     <>
                                                                         <button
@@ -723,6 +930,38 @@ export default function SuperAdminDashboard() {
                                                             Show all schools
                                                         </button>
                                                     )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Pagination */}
+                                        {totalPages > 1 && (
+                                            <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+                                                <div className="flex items-center">
+                                                    <p className="text-sm text-gray-700">
+                                                        Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
+                                                        <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalSchoolsCount)}</span> of{' '}
+                                                        <span className="font-medium">{totalSchoolsCount}</span> results
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <button
+                                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                                        disabled={currentPage === 1}
+                                                        className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        Previous
+                                                    </button>
+                                                    <span className="text-sm text-gray-700">
+                                                        Page {currentPage} of {totalPages}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                                        disabled={currentPage === totalPages}
+                                                        className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        Next
+                                                    </button>
                                                 </div>
                                             </div>
                                         )}
@@ -979,6 +1218,16 @@ export default function SuperAdminDashboard() {
                                                                                 </span>
                                                                             </td>
                                                                             <td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        setEditTeacher(teacher)
+                                                                                        setShowEditTeacher(true)
+                                                                                    }}
+                                                                                    className="text-blue-600 hover:text-blue-900"
+                                                                                    title="Edit teacher details"
+                                                                                >
+                                                                                    Edit
+                                                                                </button>
                                                                                 {teacher.isActive ? (
                                                                                     <button
                                                                                         onClick={() => updateTeacherStatus(teacher.id, false)}
@@ -1070,6 +1319,46 @@ export default function SuperAdminDashboard() {
                                                         <p className="mt-1 text-sm text-gray-500">
                                                             Teachers will appear here once they are added by school administrators.
                                                         </p>
+                                                    </div>
+                                                )}
+
+                                                {/* Pagination */}
+                                                {teacherTotalPages > 1 && (
+                                                    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+                                                        <div className="flex items-center">
+                                                            <p className="text-sm text-gray-700">
+                                                                Showing <span className="font-medium">{(teacherCurrentPage - 1) * itemsPerPage + 1}</span> to{' '}
+                                                                <span className="font-medium">{Math.min(teacherCurrentPage * itemsPerPage, teacherTotalCount)}</span> of{' '}
+                                                                <span className="font-medium">{teacherTotalCount}</span> results
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newPage = Math.max(teacherCurrentPage - 1, 1)
+                                                                    setTeacherCurrentPage(newPage)
+                                                                    fetchTeachersData(newPage)
+                                                                }}
+                                                                disabled={teacherCurrentPage === 1}
+                                                                className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            >
+                                                                Previous
+                                                            </button>
+                                                            <span className="text-sm text-gray-700">
+                                                                Page {teacherCurrentPage} of {teacherTotalPages}
+                                                            </span>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newPage = Math.min(teacherCurrentPage + 1, teacherTotalPages)
+                                                                    setTeacherCurrentPage(newPage)
+                                                                    fetchTeachersData(newPage)
+                                                                }}
+                                                                disabled={teacherCurrentPage === teacherTotalPages}
+                                                                className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            >
+                                                                Next
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -1247,6 +1536,264 @@ export default function SuperAdminDashboard() {
                                     <button
                                         type="button"
                                         onClick={() => setShowAddSchool(false)}
+                                        className="flex-1 bg-gray-300 text-gray-700 py-3 px-6 rounded-md hover:bg-gray-400 transition-colors font-medium"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Edit School Modal */}
+                {showEditSchool && editSchool && (
+                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                        <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-2xl font-bold text-gray-900">Edit School</h3>
+                                <button
+                                    onClick={() => {
+                                        setShowEditSchool(false)
+                                        setEditSchool(null)
+                                    }}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <X className="h-6 w-6" />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleEditSchool} className="space-y-6">
+                                {/* School Information */}
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <h4 className="text-lg font-medium text-gray-900 mb-4">School Information</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">School Name *</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={editSchoolForm.schoolName}
+                                                onChange={(e) => setEditSchoolForm({...editSchoolForm, schoolName: e.target.value})}
+                                                placeholder="Enter school name"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">School Type *</label>
+                                            <select
+                                                required
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={editSchoolForm.schoolType}
+                                                onChange={(e) => setEditSchoolForm({...editSchoolForm, schoolType: e.target.value})}
+                                            >
+                                                <option value="PRIMARY">Primary School</option>
+                                                <option value="SECONDARY">Secondary School</option>
+                                                <option value="TSS">Technical Secondary School</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                                            <input
+                                                type="text"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={editSchoolForm.address}
+                                                onChange={(e) => setEditSchoolForm({...editSchoolForm, address: e.target.value})}
+                                                placeholder="Enter school address"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Province/City *</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={editSchoolForm.province}
+                                                onChange={(e) => setEditSchoolForm({...editSchoolForm, province: e.target.value})}
+                                                placeholder="Enter province or city"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">District *</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={editSchoolForm.district}
+                                                onChange={(e) => setEditSchoolForm({...editSchoolForm, district: e.target.value})}
+                                                placeholder="Enter district"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Sector *</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={editSchoolForm.sector}
+                                                onChange={(e) => setEditSchoolForm({...editSchoolForm, sector: e.target.value})}
+                                                placeholder="Enter sector"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                                            <input
+                                                type="email"
+                                                required
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={editSchoolForm.email}
+                                                onChange={(e) => setEditSchoolForm({...editSchoolForm, email: e.target.value})}
+                                                placeholder="school@example.com"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                                            <input
+                                                type="tel"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={editSchoolForm.phone}
+                                                onChange={(e) => setEditSchoolForm({...editSchoolForm, phone: e.target.value})}
+                                                placeholder="+250 XXX XXX XXX"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex space-x-4 pt-4">
+                                    <button
+                                        type="submit"
+                                        className="flex-1 bg-primary-600 text-white py-3 px-6 rounded-md hover:bg-primary-700 transition-colors font-medium"
+                                    >
+                                        Update School
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowEditSchool(false)
+                                            setEditSchool(null)
+                                        }}
+                                        className="flex-1 bg-gray-300 text-gray-700 py-3 px-6 rounded-md hover:bg-gray-400 transition-colors font-medium"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Edit Teacher Modal */}
+                {showEditTeacher && editTeacher && (
+                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                        <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-2xl font-bold text-gray-900">Edit Teacher</h3>
+                                <button
+                                    onClick={() => {
+                                        setShowEditTeacher(false)
+                                        setEditTeacher(null)
+                                    }}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <X className="h-6 w-6" />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleEditTeacher} className="space-y-6">
+                                {/* Teacher Information */}
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <h4 className="text-lg font-medium text-gray-900 mb-4">Teacher Information</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={editTeacherForm.name}
+                                                onChange={(e) => setEditTeacherForm({...editTeacherForm, name: e.target.value})}
+                                                placeholder="Enter teacher name"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                                            <input
+                                                type="email"
+                                                required
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={editTeacherForm.email}
+                                                onChange={(e) => setEditTeacherForm({...editTeacherForm, email: e.target.value})}
+                                                placeholder="teacher@example.com"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Teaching Streams</label>
+                                            <select
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={editTeacherForm.teachingStreams}
+                                                onChange={(e) => setEditTeacherForm({...editTeacherForm, teachingStreams: e.target.value})}
+                                            >
+                                                <option value="">Not Set</option>
+                                                <option value="PRIMARY">Primary</option>
+                                                <option value="SECONDARY">Secondary</option>
+                                                <option value="TSS">Technical Secondary School</option>
+                                                <option value="PRIMARY_SECONDARY">Primary & Secondary</option>
+                                                <option value="SECONDARY_TSS">Secondary & TSS</option>
+                                                <option value="PRIMARY_TSS">Primary & TSS</option>
+                                                <option value="ALL">All Streams</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Max Weekly Hours</label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="60"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={editTeacherForm.maxWeeklyHours}
+                                                onChange={(e) => setEditTeacherForm({...editTeacherForm, maxWeeklyHours: parseInt(e.target.value)})}
+                                                placeholder="40"
+                                            />
+                                        </div>
+
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                                            <input
+                                                type="tel"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={editTeacherForm.phone}
+                                                onChange={(e) => setEditTeacherForm({...editTeacherForm, phone: e.target.value})}
+                                                placeholder="+250 XXX XXX XXX"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex space-x-4 pt-4">
+                                    <button
+                                        type="submit"
+                                        className="flex-1 bg-primary-600 text-white py-3 px-6 rounded-md hover:bg-primary-700 transition-colors font-medium"
+                                    >
+                                        Update Teacher
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowEditTeacher(false)
+                                            setEditTeacher(null)
+                                        }}
                                         className="flex-1 bg-gray-300 text-gray-700 py-3 px-6 rounded-md hover:bg-gray-400 transition-colors font-medium"
                                     >
                                         Cancel

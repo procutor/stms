@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
     try {
         const body = await request.json()
-        const { schoolId, status, name, address, province, district, sector, email, phone } = body
+        const { schoolId, status, name, type, address, province, district, sector, email, phone } = body
 
         if (!schoolId) {
             return NextResponse.json(
@@ -181,8 +181,9 @@ export async function PATCH(request: NextRequest) {
 
         // If school information is being updated
         const updateData: any = {}
-        
+
         if (name !== undefined) updateData.name = name
+        if (type !== undefined) updateData.type = type
         if (address !== undefined) updateData.address = address
         if (province !== undefined) updateData.province = province
         if (district !== undefined) updateData.district = district
@@ -284,28 +285,49 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url)
         const status = searchParams.get('status')
         const type = searchParams.get('type')
+        const page = parseInt(searchParams.get('page') || '1')
+        const limit = parseInt(searchParams.get('limit') || '10')
+        const skip = (page - 1) * limit
 
-        const schools = await db.school.findMany({
-            where: {
-                ...(status && { status: status as any }),
-                ...(type && { type: type as any })
-            },
-            include: {
-                _count: {
-                    select: {
-                        users: true,
-                        classes: true,
-                        subjects: true,
-                        timetables: true
+        const [schools, totalCount] = await Promise.all([
+            db.school.findMany({
+                where: {
+                    ...(status && { status: status as any }),
+                    ...(type && { type: type as any })
+                },
+                include: {
+                    _count: {
+                        select: {
+                            users: true,
+                            classes: true,
+                            subjects: true,
+                            timetables: true
+                        }
                     }
+                },
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                skip,
+                take: limit
+            }),
+            db.school.count({
+                where: {
+                    ...(status && { status: status as any }),
+                    ...(type && { type: type as any })
                 }
-            },
-            orderBy: {
-                createdAt: 'desc'
+            })
+        ])
+
+        return NextResponse.json({
+            schools,
+            pagination: {
+                page,
+                limit,
+                totalCount,
+                totalPages: Math.ceil(totalCount / limit)
             }
         })
-
-        return NextResponse.json(schools)
 
     } catch (error) {
         console.error('Schools fetch error:', error)

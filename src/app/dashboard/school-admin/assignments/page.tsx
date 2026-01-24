@@ -3,7 +3,7 @@
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Users, BookOpen, LogOut, ArrowLeft, Plus, X, UserCheck, GraduationCap, Trash2 } from 'lucide-react'
+import { Users, BookOpen, LogOut, ArrowLeft, Plus, X, UserCheck, GraduationCap, Trash2, Search } from 'lucide-react'
 import Link from 'next/link'
 import SchoolAdminSidebar from '@/components/layout/SchoolAdminSidebar'
 
@@ -98,6 +98,8 @@ export default function AssignmentsPage() {
     const [classes, setClasses] = useState<Class[]>([])
     const [teacherClassSubjectAssignments, setTeacherClassSubjectAssignments] = useState<TeacherClassSubjectAssignment[]>([])
     const [trainerClassModuleAssignments, setTrainerClassModuleAssignments] = useState<TrainerClassModuleAssignment[]>([])
+    const [showTeacherAssignments, setShowTeacherAssignments] = useState(true)
+    const [showTrainerAssignments, setShowTrainerAssignments] = useState(false)
 
     // Modal states
     const [showTeacherSubjectModal, setShowTeacherSubjectModal] = useState(false)
@@ -110,6 +112,7 @@ export default function AssignmentsPage() {
     const [selectedTrainer, setSelectedTrainer] = useState('')
     const [selectedTrainerClass, setSelectedTrainerClass] = useState('')
     const [selectedModule, setSelectedModule] = useState('')
+    const [searchTerm, setSearchTerm] = useState('')
 
     useEffect(() => {
         if (session?.user) {
@@ -126,8 +129,8 @@ export default function AssignmentsPage() {
                 setTeachers(teachersData)
             }
 
-            // Fetch trainers (users with TRAINER role)
-            const trainersResponse = await fetch('/api/trainers')
+            // Fetch trainers (teachers for TSS modules)
+            const trainersResponse = await fetch('/api/teachers')
             if (trainersResponse.ok) {
                 const trainersData = await trainersResponse.json()
                 setTrainers(trainersData)
@@ -151,7 +154,7 @@ export default function AssignmentsPage() {
             const classesResponse = await fetch('/api/classes')
             if (classesResponse.ok) {
                 const classesData = await classesResponse.json()
-                setClasses(classesData)
+                setClasses(classesData.classes || [])
             }
 
             // Fetch class-based assignments
@@ -279,6 +282,21 @@ export default function AssignmentsPage() {
         }
     }
 
+    // Filtered assignments based on search term
+    const filteredTeacherAssignments = teacherClassSubjectAssignments.filter(assignment =>
+        assignment.teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assignment.class.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assignment.subject.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assignment.teacher.email.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
+    const filteredTrainerAssignments = trainerClassModuleAssignments.filter(assignment =>
+        assignment.trainer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assignment.class.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assignment.module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assignment.trainer.email.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
     if (status === 'loading' || isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -359,8 +377,8 @@ export default function AssignmentsPage() {
 
                 <main className="flex-1 py-6 sm:px-6 lg:px-8">
                     <div className="px-4 py-6 sm:px-0">
-                        {/* Action Buttons */}
-                        <div className="bg-white shadow rounded-lg mb-6">
+                        {/* Action Buttons - Hidden */}
+                        {/* <div className="bg-white shadow rounded-lg mb-6">
                             <div className="px-4 py-5 sm:p-6">
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                                     <div>
@@ -389,110 +407,186 @@ export default function AssignmentsPage() {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
 
                         {/* Teacher-Subject Assignments */}
                         <div className="bg-white shadow rounded-lg mb-6">
                             <div className="px-4 py-5 sm:p-6">
-                                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4 flex items-center">
-                                    <UserCheck className="h-5 w-5 mr-2" />
-                                    Teacher-Class-Subject Assignments ({teacherClassSubjectAssignments.length})
-                                </h3>
-
-                                {teacherClassSubjectAssignments.length === 0 ? (
-                                    <div className="text-center py-8">
-                                        <UserCheck className="mx-auto h-12 w-12 text-gray-400" />
-                                        <h3 className="mt-2 text-sm font-medium text-gray-900">No teacher-class-subject assignments</h3>
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            Assign subjects to teachers for specific classes to enable timetable generation.
-                                        </p>
+                                <div className="mb-4 px-4 py-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div
+                                            className={`flex items-center cursor-pointer p-3 rounded-lg transition-colors ${
+                                                showTeacherAssignments
+                                                    ? 'bg-blue-700 text-white shadow-lg'
+                                                    : 'bg-orange-500 text-orange-100 hover:bg-orange-400'
+                                            }`}
+                                            onClick={() => {
+                                                setShowTeacherAssignments(true);
+                                                setShowTrainerAssignments(false);
+                                            }}
+                                        >
+                                            <UserCheck className="h-5 w-5 mr-2" />
+                                            <span className="font-semibold">Teacher-Class-Subject Assignments ({teacherClassSubjectAssignments.length})</span>
+                                        </div>
+                                        <div
+                                            className={`flex items-center cursor-pointer p-3 rounded-lg transition-colors ${
+                                                showTrainerAssignments
+                                                    ? 'bg-green-700 text-white shadow-lg'
+                                                    : 'bg-orange-500 text-orange-100 hover:bg-orange-400'
+                                            }`}
+                                            onClick={() => {
+                                                setShowTeacherAssignments(false);
+                                                setShowTrainerAssignments(true);
+                                            }}
+                                        >
+                                            <GraduationCap className="h-5 w-5 mr-2" />
+                                            <span className="font-semibold">Trainer-Class-Module Assignments ({trainerClassModuleAssignments.length})</span>
+                                        </div>
                                     </div>
-                                ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="min-w-full divide-y divide-gray-200">
-                                            <thead className="bg-gray-50">
-                                                <tr>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                        Teacher
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                        Class
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                        Subject
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                        Actions
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="bg-white divide-y divide-gray-200">
-                                                {teacherClassSubjectAssignments.map((assignment, index) => (
-                                                    <tr key={assignment.id} className="hover:bg-gray-50">
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="flex items-center">
-                                                                <div className="flex-shrink-0 h-10 w-10">
-                                                                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                                                        <UserCheck className="h-5 w-5 text-blue-600" />
+                                </div>
+
+                                {showTeacherAssignments && (
+                                    <>
+                                        {/* Search Bar */}
+                                        <div className="mb-4">
+                                            <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <Search className="h-5 w-5 text-gray-400" />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search by teacher name, email, class, or subject..."
+                                                    value={searchTerm}
+                                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {filteredTeacherAssignments.length === 0 && teacherClassSubjectAssignments.length > 0 ? (
+                                            <div className="text-center py-8">
+                                                <Search className="mx-auto h-12 w-12 text-gray-400" />
+                                                <h3 className="mt-2 text-sm font-medium text-gray-900">No assignments found</h3>
+                                                <p className="mt-1 text-sm text-gray-500">
+                                                    Try adjusting your search terms.
+                                                </p>
+                                            </div>
+                                        ) : teacherClassSubjectAssignments.length === 0 ? (
+                                            <div className="text-center py-8">
+                                                <UserCheck className="mx-auto h-12 w-12 text-gray-400" />
+                                                <h3 className="mt-2 text-sm font-medium text-gray-900">No teacher-class-subject assignments</h3>
+                                                <p className="mt-1 text-sm text-gray-500">
+                                                    Assign subjects to teachers for specific classes to enable timetable generation.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="overflow-x-auto">
+                                                <table className="min-w-full divide-y divide-gray-200">
+                                                    <thead className="bg-gray-50">
+                                                        <tr>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                Teacher
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                Class
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                Subject
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                Actions
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="bg-white divide-y divide-gray-200">
+                                                        {filteredTeacherAssignments.map((assignment, index) => (
+                                                            <tr key={assignment.id} className="hover:bg-gray-50">
+                                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                                    <div className="flex items-center">
+                                                                        <div className="flex-shrink-0 h-10 w-10">
+                                                                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                                                                <UserCheck className="h-5 w-5 text-blue-600" />
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="ml-4">
+                                                                            <div className="text-sm font-medium text-gray-900">
+                                                                                {assignment.teacher.name}
+                                                                            </div>
+                                                                            <div className="text-sm text-gray-500">
+                                                                                {assignment.teacher.email}
+                                                                            </div>
+                                                                            {assignment.teacher.teachingStreams && (
+                                                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${getStreamBadgeColor(assignment.teacher.teachingStreams)}`}>
+                                                                                    {assignment.teacher.teachingStreams}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                <div className="ml-4">
+                                                                </td>
+                                                                <td className="px-6 py-4 whitespace-nowrap">
                                                                     <div className="text-sm font-medium text-gray-900">
-                                                                        {assignment.teacher.name}
+                                                                        {assignment.class.name}
                                                                     </div>
                                                                     <div className="text-sm text-gray-500">
-                                                                        {assignment.teacher.email}
+                                                                        Level: {assignment.class.level}
                                                                     </div>
-                                                                    {assignment.teacher.teachingStreams && (
-                                                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${getStreamBadgeColor(assignment.teacher.teachingStreams)}`}>
-                                                                            {assignment.teacher.teachingStreams}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-medium text-gray-900">
-                                                                {assignment.class.name}
-                                                            </div>
-                                                            <div className="text-sm text-gray-500">
-                                                                Level: {assignment.class.level}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-medium text-gray-900">
-                                                                {assignment.subject.name}
-                                                            </div>
-                                                            <div className="text-sm text-gray-500">
-                                                                Code: {assignment.subject.code}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                            <button
-                                                                onClick={() => handleRemoveAssignment('teacher-subject', assignment)}
-                                                                className="text-red-600 hover:text-red-900"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                                    <div className="text-sm font-medium text-gray-900">
+                                                                        {assignment.subject.name}
+                                                                    </div>
+                                                                    <div className="text-sm text-gray-500">
+                                                                        Code: {assignment.subject.code}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                                    <button
+                                                                        onClick={() => handleRemoveAssignment('teacher-subject', assignment)}
+                                                                        className="text-red-600 hover:text-red-900"
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
 
                         {/* Trainer-Module Assignments */}
-                        <div className="bg-white shadow rounded-lg">
-                            <div className="px-4 py-5 sm:p-6">
-                                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4 flex items-center">
-                                    <GraduationCap className="h-5 w-5 mr-2" />
-                                    Trainer-Class-Module Assignments ({trainerClassModuleAssignments.length})
-                                </h3>
+                        {showTrainerAssignments && (
+                            <div className="bg-white shadow rounded-lg">
+                                <div className="px-4 py-5 sm:p-6">
+                                    {/* Search Bar */}
+                                    <div className="mb-4">
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Search className="h-5 w-5 text-gray-400" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                placeholder="Search by trainer name, email, class, or module..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                                            />
+                                        </div>
+                                    </div>
 
-                                {trainerClassModuleAssignments.length === 0 ? (
+                                    {filteredTrainerAssignments.length === 0 && trainerClassModuleAssignments.length > 0 ? (
+                                        <div className="text-center py-8">
+                                            <Search className="mx-auto h-12 w-12 text-gray-400" />
+                                            <h3 className="mt-2 text-sm font-medium text-gray-900">No assignments found</h3>
+                                            <p className="mt-1 text-sm text-gray-500">
+                                                Try adjusting your search terms.
+                                            </p>
+                                        </div>
+                                    ) : trainerClassModuleAssignments.length === 0 ? (
                                     <div className="text-center py-8">
                                         <GraduationCap className="mx-auto h-12 w-12 text-gray-400" />
                                         <h3 className="mt-2 text-sm font-medium text-gray-900">No trainer-class-module assignments</h3>
@@ -523,7 +617,7 @@ export default function AssignmentsPage() {
                                                 </tr>
                                             </thead>
                                             <tbody className="bg-white divide-y divide-gray-200">
-                                                {trainerClassModuleAssignments.map((assignment, index) => (
+                                                {filteredTrainerAssignments.map((assignment, index) => (
                                                     <tr key={assignment.id} className="hover:bg-gray-50">
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <div className="flex items-center">
@@ -593,6 +687,7 @@ export default function AssignmentsPage() {
                                 )}
                             </div>
                         </div>
+                        )}
                     </div>
                 </main>
 

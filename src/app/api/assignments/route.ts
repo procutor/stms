@@ -35,38 +35,25 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        // Get teacher-subject assignments
-        const teacherSubjects = await db.teacherSubject.findMany({
+        const { searchParams } = new URL(request.url)
+        const page = parseInt(searchParams.get('page') || '1')
+        const limit = parseInt(searchParams.get('limit') || '10')
+        const skip = (page - 1) * limit
+
+        // Get teacher-subject assignments count
+        const teacherSubjectsCount = await db.teacherSubject.count({
             where: {
                 teacher: {
                     schoolId: session.user.schoolId
                 },
                 subject: {
                     schoolId: session.user.schoolId
-                }
-            },
-            include: {
-                teacher: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        teachingStreams: true
-                    } as any
-                },
-                subject: {
-                    select: {
-                        id: true,
-                        name: true,
-                        code: true,
-                        level: true
-                    } as any
                 }
             }
         })
 
-        // Get trainer-module assignments
-        const trainerModules = await db.trainerModule.findMany({
+        // Get trainer-module assignments count
+        const trainerModulesCount = await db.trainerModule.count({
             where: {
                 trainer: {
                     schoolId: session.user.schoolId
@@ -74,31 +61,96 @@ export async function GET(request: NextRequest) {
                 module: {
                     schoolId: session.user.schoolId
                 }
-            },
-            include: {
-                trainer: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        teachingStreams: true
-                    } as any
-                },
-                module: {
-                    select: {
-                        id: true,
-                        name: true,
-                        code: true,
-                        level: true,
-                        category: true
-                    } as any
-                }
             }
         })
+
+        const totalCount = teacherSubjectsCount + trainerModulesCount
+
+        // Get paginated assignments
+        let assignments: any[] = []
+
+        if (skip < teacherSubjectsCount) {
+            // Include teacher-subject assignments
+            const teacherSubjectsLimit = Math.min(limit - assignments.length, teacherSubjectsCount - skip)
+            const teacherSubjects = await db.teacherSubject.findMany({
+                where: {
+                    teacher: {
+                        schoolId: session.user.schoolId
+                    },
+                    subject: {
+                        schoolId: session.user.schoolId
+                    }
+                },
+                include: {
+                    teacher: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            teachingStreams: true
+                        } as any
+                    },
+                    subject: {
+                        select: {
+                            id: true,
+                            name: true,
+                            code: true,
+                            level: true
+                        } as any
+                    }
+                },
+                skip: skip,
+                take: teacherSubjectsLimit
+            })
+            assignments = assignments.concat(teacherSubjects.map(ts => ({ ...ts, type: 'teacher-subject' })))
+        }
+
+        if (assignments.length < limit) {
+            // Include trainer-module assignments
+            const trainerSkip = Math.max(0, skip - teacherSubjectsCount)
+            const trainerModulesLimit = limit - assignments.length
+            const trainerModules = await db.trainerModule.findMany({
+                where: {
+                    trainer: {
+                        schoolId: session.user.schoolId
+                    },
+                    module: {
+                        schoolId: session.user.schoolId
+                    }
+                },
+                include: {
+                    trainer: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            teachingStreams: true
+                        } as any
+                    },
+                    module: {
+                        select: {
+                            id: true,
+                            name: true,
+                            code: true,
+                            level: true,
+                            category: true
+                        } as any
+                    }
+                },
+                skip: trainerSkip,
+                take: trainerModulesLimit
+            })
+            assignments = assignments.concat(trainerModules.map(tm => ({ ...tm, type: 'trainer-module' })))
+        }
 
         return NextResponse.json({
-            teacherSubjects,
-            trainerModules
+            assignments,
+            pagination: {
+                page,
+                limit,
+                totalCount,
+                totalPages: Math.ceil(totalCount / limit)
+            }
         })
 
     } catch (error) {

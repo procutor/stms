@@ -98,26 +98,40 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        const classes = await db.class.findMany({
-            where: {
-                schoolId: session.user.schoolId
-            },
-            include: {
-                _count: {
-                    select: {
-                        subjects: true,
-                        timetables: true,
-                        trainerClassModules: true
-                    }
-                }
-            },
-            orderBy: [
-                { level: 'asc' },
-                { name: 'asc' }
-            ]
-        })
+        const { searchParams } = new URL(request.url)
+        const page = parseInt(searchParams.get('page') || '1')
+        const limit = parseInt(searchParams.get('limit') || '10')
+        const skip = (page - 1) * limit
 
-        return NextResponse.json(classes)
+        const [classes, totalCount] = await Promise.all([
+            db.class.findMany({
+                where: {
+                    schoolId: session.user.schoolId
+                },
+                include: {
+                    _count: {
+                        select: {
+                            subjects: true,
+                            timetables: true,
+                            trainerClassModules: true
+                        }
+                    }
+                },
+                orderBy: [
+                    { level: 'asc' },
+                    { name: 'asc' }
+                ],
+                skip,
+                take: limit
+            }),
+            db.class.count({
+                where: {
+                    schoolId: session.user.schoolId
+                }
+            })
+        ])
+
+        return NextResponse.json({ classes })
 
     } catch (error) {
         console.error('Classes fetch error:', error)

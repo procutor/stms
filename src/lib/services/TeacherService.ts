@@ -10,6 +10,8 @@ export interface TeacherData {
   maxWeeklyHours: number | null
   isActive: boolean
   _count?: {
+    teacherSubjects: number
+    trainerModules: number
     timetablesAsTeacher: number
   }
 }
@@ -34,6 +36,8 @@ export class TeacherService {
       include: {
         _count: {
           select: {
+            teacherSubjects: true,
+            trainerModules: true,
             timetablesAsTeacher: true
           }
         }
@@ -50,6 +54,8 @@ export class TeacherService {
       include: {
         _count: {
           select: {
+            teacherSubjects: true,
+            trainerModules: true,
             timetablesAsTeacher: true
           }
         }
@@ -113,6 +119,8 @@ export class TeacherService {
       include: {
         _count: {
           select: {
+            teacherSubjects: true,
+            trainerModules: true,
             timetablesAsTeacher: true
           }
         }
@@ -132,6 +140,8 @@ export class TeacherService {
       include: {
         _count: {
           select: {
+            teacherSubjects: true,
+            trainerModules: true,
             timetablesAsTeacher: true
           }
         }

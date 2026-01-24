@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Clock, LogOut, ArrowLeft, Save, UserCheck, Calendar, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
+import SchoolAdminSidebar from '@/components/layout/SchoolAdminSidebar'
 
 interface Teacher {
     id: string
@@ -48,6 +49,7 @@ export default function TeacherAvailabilityPage() {
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [isSaving, setIsSaving] = useState(false)
+    const [searchTerm, setSearchTerm] = useState('')
 
     // Availability state
     const [unavailableDays, setUnavailableDays] = useState<string[]>([])
@@ -162,6 +164,13 @@ export default function TeacherAvailabilityPage() {
         }
     }
 
+    // Filter teachers based on search term
+    const filteredTeachers = teachers.filter(teacher =>
+        teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        teacher.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        teacher.role.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
     if (status === 'loading' || isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -197,35 +206,40 @@ export default function TeacherAvailabilityPage() {
 
     return (
         <div className="min-h-screen bg-slate-50">
-            {/* Header */}
-            <header className="bg-white shadow-lg">
+            {/* Fixed Sidebar */}
+            <SchoolAdminSidebar />
+
+            {/* Main Content */}
+            <div className="ml-64 flex flex-col min-h-screen">
+                {/* Header */}
+                <header className="bg-white shadow-lg">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center py-6">
                         <div className="flex items-center space-x-4">
                             <Link
                                 href="/dashboard/school-admin"
-                                className="flex items-center space-x-2 text-sky-100 hover:text-white transition-colors"
+                                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
                             >
                                 <ArrowLeft className="h-5 w-5" />
                                 <span>Back to Dashboard</span>
                             </Link>
                             <div>
-                                <h1 className="text-3xl font-bold text-white flex items-center space-x-2">
+                                <h1 className="text-3xl font-bold text-gray-800 flex items-center space-x-2">
                                     <Clock className="h-8 w-8" />
                                     <span>Teacher Availability</span>
                                 </h1>
-                                <p className="text-sm text-sky-100">
+                                <p className="text-sm text-gray-600">
                                     {session.user.schoolName} - Manage teacher and trainer availability constraints
                                 </p>
                             </div>
                         </div>
                         <div className="flex items-center space-x-4">
-                            <span className="text-sm text-sky-100">
+                            <span className="text-sm text-gray-500">
                                 Welcome, {session.user.name}
                             </span>
                             <button
                                 onClick={handleLogout}
-                                className="flex items-center space-x-2 text-sky-100 hover:text-white transition-colors"
+                                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
                             >
                                 <LogOut className="h-4 w-4" />
                                 <span>Sign Out</span>
@@ -243,11 +257,38 @@ export default function TeacherAvailabilityPage() {
                         <div className="lg:col-span-1">
                             <div className="bg-white shadow rounded-lg">
                                 <div className="px-4 py-5 sm:p-6">
-                                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-2">
                                         Select Teacher/Trainer
                                     </h3>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        Select a teacher or trainer to customize their availability settings and schedule constraints.
+                                    </p>
+
+                                    {/* Search Bar */}
+                                    <div className="mb-4">
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                </svg>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                placeholder="Search teachers/trainers by name or email..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {searchTerm && (
+                                        <div className="mb-2 text-sm text-gray-600">
+                                            Showing {filteredTeachers.length} of {teachers.length} teachers/trainers
+                                        </div>
+                                    )}
                                     <div className="space-y-2 max-h-96 overflow-y-auto">
-                                        {teachers.map((teacher) => (
+                                        {filteredTeachers.map((teacher) => (
                                             <button
                                                 key={teacher.id}
                                                 onClick={() => handleTeacherSelect(teacher)}
@@ -429,6 +470,7 @@ export default function TeacherAvailabilityPage() {
                     </div>
                 </div>
             </main>
+            </div>
         </div>
     )
 }

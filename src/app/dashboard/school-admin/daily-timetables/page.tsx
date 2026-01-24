@@ -58,7 +58,7 @@ interface Class {
 const DAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
 
 export default function DailyTimetablesPage() {
-    const { data: session } = useSession()
+    const { data: session, status } = useSession()
     const [timetables, setTimetables] = useState<TimetableEntry[]>([])
     const [classes, setClasses] = useState<Class[]>([])
     const [selectedDay, setSelectedDay] = useState('MONDAY')
@@ -83,10 +83,10 @@ export default function DailyTimetablesPage() {
             if (timetablesRes.ok && classesRes.ok) {
                 const timetablesData = await timetablesRes.json()
                 const classesData = await classesRes.json()
-                setTimetables(timetablesData)
-                setClasses(classesData)
-                if (classesData.length > 0) {
-                    setSelectedClass(classesData[0].id)
+                setTimetables(timetablesData.timetables || [])
+                setClasses(classesData.classes || [])
+                if (classesData.classes && classesData.classes.length > 0) {
+                    setSelectedClass(classesData.classes[0].id)
                 }
             } else {
                 setError('Failed to fetch data')
@@ -271,19 +271,21 @@ export default function DailyTimetablesPage() {
 
             {/* Main Content */}
             <div className="ml-64 flex flex-col min-h-screen">
-                <style jsx global>{`
-                @media print {
-                  .no-print { display: none !important; }
-                  body { background: white !important; }
-                  .print\:shadow-none { box-shadow: none !important; }
-                  .print\:border { border: 1px solid #d1d5db !important; }
-                  .print\:text-sm { font-size: 0.875rem !important; line-height: 1.25rem !important; }
-                  .print\:px-1 { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
-                  .print\:px-2 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
-                  .print\:py-1 { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
-                  .print\:py-2 { padding-top: 0.5rem !important; padding-bottom: 0.25rem !important; }
-                }
-              `}</style>
+                <style dangerouslySetInnerHTML={{
+                    __html: `
+                    @media print {
+                      .no-print { display: none !important; }
+                      body { background: white !important; }
+                      .print\\:shadow-none { box-shadow: none !important; }
+                      .print\\:border { border: 1px solid #d1d5db !important; }
+                      .print\\:text-sm { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+                      .print\\:px-1 { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+                      .print\\:px-2 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+                      .print\\:py-1 { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+                      .print\\:py-2 { padding-top: 0.5rem !important; padding-bottom: 0.25rem !important; }
+                    }
+                    `
+                }} />
 
             {/* Header */}
             <header className="bg-gray-800 shadow no-print">

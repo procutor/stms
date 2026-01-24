@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { GraduationCap, LogOut, ArrowLeft, Save, Upload, Download, FileSpreadsheet, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
+import SchoolAdminSidebar from '@/components/layout/SchoolAdminSidebar'
 
 export default function CreateClass() {
     const { data: session, status } = useSession()
@@ -167,47 +168,52 @@ export default function CreateClass() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center py-6">
-                        <div className="flex items-center space-x-4">
-                            <Link
-                                href="/dashboard/school-admin/add-classes"
-                                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
-                            >
-                                <ArrowLeft className="h-5 w-5" />
-                                <span>Back to Classes</span>
-                            </Link>
-                            <div>
-                                <h1 className="text-3xl font-bold text-gray-900 flex items-center space-x-2">
-                                    <GraduationCap className="h-8 w-8" />
-                                    <span>Create New Class</span>
-                                </h1>
-                                <p className="text-sm text-gray-600">
-                                    {session.user.schoolName}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <span className="text-sm text-gray-700">
-                                Welcome, {session.user.name}
-                            </span>
-                            <button
-                                onClick={handleLogout}
-                                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
-                            >
-                                <LogOut className="h-4 w-4" />
-                                <span>Sign Out</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
+        <div className="min-h-screen bg-gray-50 flex">
+            {/* Sidebar */}
+            <SchoolAdminSidebar />
 
             {/* Main Content */}
-            <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+            <div className="ml-64 flex flex-col min-h-screen">
+                {/* Header */}
+                <header className="bg-white shadow-lg">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex justify-between items-center py-6">
+                            <div className="flex items-center space-x-4">
+                                <Link
+                                    href="/dashboard/school-admin/add-classes"
+                                    className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+                                >
+                                    <ArrowLeft className="h-5 w-5" />
+                                    <span>Back to Classes</span>
+                                </Link>
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-900 flex items-center space-x-2">
+                                        <GraduationCap className="h-8 w-8" />
+                                        <span>Create New Class</span>
+                                    </h1>
+                                    <p className="text-sm text-gray-600">
+                                        {session.user.schoolName}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center space-x-4">
+                                <span className="text-sm text-gray-700">
+                                    Welcome, {session.user.name}
+                                </span>
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+                                >
+                                    <LogOut className="h-4 w-4" />
+                                    <span>Sign Out</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Main Content */}
+                <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
                 <div className="px-4 py-6 sm:px-0">
                     <div className="bg-white shadow rounded-lg">
                         <div className="px-4 py-5 sm:p-6">
@@ -456,6 +462,7 @@ export default function CreateClass() {
                     </div>
                 </div>
             </main>
+            </div>
         </div>
     )
 }
