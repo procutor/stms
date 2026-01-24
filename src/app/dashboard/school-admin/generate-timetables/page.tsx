@@ -64,7 +64,7 @@ export default function GenerateTimetables() {
             const response = await fetch('/api/classes')
             if (response.ok) {
                 const data = await response.json()
-                setClasses(data.classes || [])
+                setClasses(data || [])
             }
         } catch (error) {
             console.error('Error fetching classes:', error)
