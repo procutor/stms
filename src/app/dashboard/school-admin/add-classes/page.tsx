@@ -65,12 +65,19 @@ export default function AddClassesPage() {
         stream: ''
     })
 
+    // Class creation with assignments
+    const [selectedSubjectsForNewClass, setSelectedSubjectsForNewClass] = useState<string[]>([])
+    const [selectedTeacherForNewClass, setSelectedTeacherForNewClass] = useState('')
+    const [teacherSubjectsForNewClass, setTeacherSubjectsForNewClass] = useState<Subject[]>([])
+    const [isLoadingTeacherSubjectsForNewClass, setIsLoadingTeacherSubjectsForNewClass] = useState(false)
+
     // Assignment state
     const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
     const [selectedTrainer, setSelectedTrainer] = useState('')
     const [selectedModule, setSelectedModule] = useState('')
     const [selectedModules, setSelectedModules] = useState<string[]>([])
     const [subjectSearch, setSubjectSearch] = useState('')
+    const [subjectLevelFilter, setSubjectLevelFilter] = useState('')
     const [trainerSearch, setTrainerSearch] = useState('')
     const [moduleSearch, setModuleSearch] = useState('')
     const [moduleLevelFilter, setModuleLevelFilter] = useState('')
@@ -84,9 +91,10 @@ export default function AddClassesPage() {
     const [classSearchTerm, setClassSearchTerm] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
     const [pagination, setPagination] = useState<{page: number, limit: number, totalCount: number, totalPages: number} | null>(null)
-    // Teacher selection for automatic assignment creation
+    // Teacher selection for subject assignment
     const [selectedTeacherForSubjects, setSelectedTeacherForSubjects] = useState('')
-    const [showTeacherSelection, setShowTeacherSelection] = useState(false)
+    const [teacherSubjects, setTeacherSubjects] = useState<Subject[]>([])
+    const [isLoadingTeacherSubjects, setIsLoadingTeacherSubjects] = useState(false)
 
     const filteredClasses = Array.isArray(classes) ? classes.filter(cls =>
         cls.name.toLowerCase().includes(classSearchTerm.toLowerCase()) ||
@@ -99,6 +107,28 @@ export default function AddClassesPage() {
             fetchAllData()
         }
     }, [session])
+
+    // Fetch teacher subjects when teacher changes
+    useEffect(() => {
+        if (selectedTeacherForSubjects) {
+            fetchTeacherSubjects(selectedTeacherForSubjects)
+            // Clear selected subjects when teacher changes
+            setSelectedSubjects([])
+        } else {
+            setTeacherSubjects([])
+        }
+    }, [selectedTeacherForSubjects])
+
+    // Fetch teacher subjects for new class
+    useEffect(() => {
+        if (selectedTeacherForNewClass) {
+            fetchTeacherSubjectsForNewClass(selectedTeacherForNewClass)
+            // Clear selected subjects when teacher changes
+            setSelectedSubjectsForNewClass([])
+        } else {
+            setTeacherSubjectsForNewClass([])
+        }
+    }, [selectedTeacherForNewClass])
 
     const fetchAllData = async () => {
         try {
@@ -160,9 +190,39 @@ export default function AddClassesPage() {
             const data = await response.json()
 
             if (response.ok) {
+                const createdClass = data.class || data
+
+                // Create teacher-class-subject assignments if subjects and teacher are selected
+                if (selectedSubjectsForNewClass.length > 0 && selectedTeacherForNewClass) {
+                    try {
+                        // Create teacher-class-subject assignments (per-class assignments)
+                        const teacherClassAssignments = selectedSubjectsForNewClass.map(subjectId => ({
+                            teacherId: selectedTeacherForNewClass,
+                            classId: createdClass.id,
+                            subjectId: subjectId
+                        }))
+
+                        // Use Promise.allSettled to handle cases where assignments might already exist
+                        await Promise.allSettled(
+                            teacherClassAssignments.map(assignment =>
+                                fetch('/api/teacher-class-assignments', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(assignment)
+                                })
+                            )
+                        )
+                    } catch (assignmentError) {
+                        console.warn('Failed to create automatic assignments:', assignmentError)
+                    }
+                }
+
                 alert('Class added successfully!')
                 setShowAddModal(false)
                 setNewClass({ level: '', stream: '' })
+                setSelectedSubjectsForNewClass([])
+                setSelectedTeacherForNewClass('')
+                setTeacherSubjectsForNewClass([])
                 fetchAllData()
             } else {
                 alert('Failed to add class: ' + data.error)
@@ -175,26 +235,21 @@ export default function AddClassesPage() {
 
     const fetchCurrentAssignments = async (classId: string) => {
         try {
-            const [subjectsRes, modulesRes] = await Promise.all([
-                fetch(`/api/class-assignments?classId=${classId}`),
-                fetch('/api/teacher-class-assignments')
-            ])
+            const response = await fetch('/api/teacher-class-assignments')
 
             const assignments = []
 
-            if (subjectsRes.ok) {
-                const subjectsData = await subjectsRes.json()
-                assignments.push(...subjectsData.classSubjects.map((s: any) => ({ ...s, type: 'subject' })))
-            }
-
-            if (modulesRes.ok) {
-                const modulesData = await modulesRes.json()
+            if (response.ok) {
+                const data = await response.json()
                 // Filter by classId
-                const filteredModules = [
-                    ...modulesData.teacherClassSubjects.filter((s: any) => s.classId === classId),
-                    ...modulesData.trainerClassModules.filter((m: any) => m.classId === classId)
+                const filteredAssignments = [
+                    ...data.teacherClassSubjects.filter((s: any) => s.classId === classId),
+                    ...data.trainerClassModules.filter((m: any) => m.classId === classId)
                 ]
-                assignments.push(...filteredModules.map((m: any) => ({ ...m, type: m.trainer ? 'module' : 'subject' })))
+                assignments.push(...filteredAssignments.map((a: any) => ({
+                    ...a,
+                    type: a.trainer ? 'module' : 'subject'
+                })))
             }
 
             setCurrentAssignments(assignments)
@@ -205,8 +260,7 @@ export default function AddClassesPage() {
 
     const fetchClassDetails = async (classId: string) => {
         try {
-            const [subjectsRes, modulesRes, teachersRes] = await Promise.all([
-                fetch(`/api/class-assignments?classId=${classId}`),
+            const [assignmentsRes, teachersRes] = await Promise.all([
                 fetch('/api/teacher-class-assignments'),
                 fetch('/api/teachers')
             ])
@@ -219,19 +273,17 @@ export default function AddClassesPage() {
                 allTeachers = await teachersRes.json()
             }
 
-            if (subjectsRes.ok) {
-                const subjectsData = await subjectsRes.json()
-                assignments.push(...subjectsData.classSubjects.map((s: any) => ({ ...s, type: 'subject' })))
-            }
-
-            if (modulesRes.ok) {
-                const modulesData = await modulesRes.json()
+            if (assignmentsRes.ok) {
+                const data = await assignmentsRes.json()
                 // Filter by classId
-                const filteredModules = [
-                    ...modulesData.teacherClassSubjects.filter((s: any) => s.classId === classId),
-                    ...modulesData.trainerClassModules.filter((m: any) => m.classId === classId)
+                const filteredAssignments = [
+                    ...data.teacherClassSubjects.filter((s: any) => s.classId === classId),
+                    ...data.trainerClassModules.filter((m: any) => m.classId === classId)
                 ]
-                assignments.push(...filteredModules.map((m: any) => ({ ...m, type: m.trainer ? 'module' : 'subject' })))
+                assignments.push(...filteredAssignments.map((a: any) => ({
+                    ...a,
+                    type: a.trainer ? 'module' : 'subject'
+                })))
             }
 
             setClassDetailsAssignments(assignments)
@@ -254,7 +306,8 @@ export default function AddClassesPage() {
         setModuleLevelFilter('')
         setModuleTradeFilter('')
         setSelectedTeacherForSubjects('')
-        setShowTeacherSelection(false)
+        setTeacherSubjects([])
+        setIsLoadingTeacherSubjects(false)
         fetchCurrentAssignments(cls.id)
         setShowAssignmentModal(true)
     }
@@ -263,6 +316,52 @@ export default function AddClassesPage() {
         setSelectedClassForDetails(cls)
         fetchClassDetails(cls.id)
         setShowClassDetails(true)
+    }
+
+    const fetchTeacherSubjects = async (teacherId: string) => {
+        if (!teacherId) {
+            setTeacherSubjects([])
+            return
+        }
+
+        try {
+            setIsLoadingTeacherSubjects(true)
+            const response = await fetch(`/api/teacher-subjects?teacherId=${teacherId}`)
+            if (response.ok) {
+                const data = await response.json()
+                setTeacherSubjects(data || [])
+            } else {
+                setTeacherSubjects([])
+            }
+        } catch (error) {
+            console.error('Error fetching teacher subjects:', error)
+            setTeacherSubjects([])
+        } finally {
+            setIsLoadingTeacherSubjects(false)
+        }
+    }
+
+    const fetchTeacherSubjectsForNewClass = async (teacherId: string) => {
+        if (!teacherId) {
+            setTeacherSubjectsForNewClass([])
+            return
+        }
+
+        try {
+            setIsLoadingTeacherSubjectsForNewClass(true)
+            const response = await fetch(`/api/teacher-subjects?teacherId=${teacherId}`)
+            if (response.ok) {
+                const data = await response.json()
+                setTeacherSubjectsForNewClass(data || [])
+            } else {
+                setTeacherSubjectsForNewClass([])
+            }
+        } catch (error) {
+            console.error('Error fetching teacher subjects for new class:', error)
+            setTeacherSubjectsForNewClass([])
+        } finally {
+            setIsLoadingTeacherSubjectsForNewClass(false)
+        }
     }
 
     const handleSubjectToggle = (subjectId: string) => {
@@ -279,6 +378,15 @@ export default function AddClassesPage() {
                 ? prev.filter(id => id !== moduleId)
                 : [...prev, moduleId]
         )
+    }
+
+    const handleSelectAllSubjects = () => {
+        const filteredSubjects = getFilteredSubjects()
+        if (selectedSubjects.length === filteredSubjects.length) {
+            setSelectedSubjects([])
+        } else {
+            setSelectedSubjects(filteredSubjects.map(s => s.id))
+        }
     }
 
     const handleSelectAllModules = () => {
@@ -310,7 +418,7 @@ export default function AddClassesPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     teacherId: teacherId,
-                    classId: selectedClassForAssignment?.id,
+                    classId: assignment.classId,
                     [assignment.type === 'module' ? 'moduleId' : 'subjectId']: assignment.module?.id || assignment.subject?.id
                 })
             })
@@ -370,16 +478,18 @@ export default function AddClassesPage() {
 
         try {
             if (assignmentType === 'subjects') {
-                if (selectedSubjects.length === 0) return
+                if (!selectedTeacherForSubjects || selectedSubjects.length === 0) return
 
+                // Create teacher-class-subject assignments (per-class assignments)
                 const assignments = selectedSubjects.map(subjectId => ({
+                    teacherId: selectedTeacherForSubjects,
                     classId: selectedClassForAssignment.id,
                     subjectId: subjectId
                 }))
 
                 const responses = await Promise.allSettled(
                     assignments.map(assignment =>
-                        fetch('/api/class-assignments', {
+                        fetch('/api/teacher-class-assignments', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(assignment)
@@ -390,8 +500,8 @@ export default function AddClassesPage() {
                 const successful = responses.filter(r => r.status === 'fulfilled' && r.value.ok).length
                 const failed = responses.length - successful
 
-                // Automatically create teacher-subject assignments if teacher is selected
-                if (successful > 0 && selectedTeacherForSubjects) {
+                // Also create global teacher-subject assignments if they don't exist
+                if (successful > 0) {
                     try {
                         const teacherSubjectAssignments = selectedSubjects.map(subjectId => ({
                             type: 'teacher-subject',
@@ -399,7 +509,8 @@ export default function AddClassesPage() {
                             subjectId: subjectId
                         }))
 
-                        const assignmentResponses = await Promise.allSettled(
+                        // Use Promise.allSettled to handle cases where assignments might already exist
+                        await Promise.allSettled(
                             teacherSubjectAssignments.map(assignment =>
                                 fetch('/api/assignments', {
                                     method: 'POST',
@@ -408,23 +519,20 @@ export default function AddClassesPage() {
                                 })
                             )
                         )
-
-                        const assignmentSuccessful = assignmentResponses.filter(r => r.status === 'fulfilled' && r.value.ok).length
-                        if (assignmentSuccessful > 0) {
-                            console.log(`Automatically created ${assignmentSuccessful} teacher-subject assignment(s)`)
-                        }
                     } catch (assignmentError) {
-                        console.warn('Failed to create automatic teacher-subject assignments:', assignmentError)
+                        console.warn('Failed to create global teacher-subject assignments:', assignmentError)
                     }
                 }
 
                 if (successful > 0) {
-                    const message = `Successfully assigned ${successful} subject(s) to class.${selectedTeacherForSubjects ? ' Automatic teacher-subject assignments created.' : ''}${failed > 0 ? ` ${failed} failed due to duplicates.` : ''}`
+                    const message = `Successfully assigned ${successful} subject(s) to teacher for this class.${failed > 0 ? ` ${failed} failed due to duplicates.` : ''} Global teacher-subject assignments also created.`
                     alert(message)
                     setShowAssignmentModal(false)
                     setSelectedClassForAssignment(null)
                     setSelectedTeacherForSubjects('')
-                    setShowTeacherSelection(false)
+                    setTeacherSubjects([])
+                    setIsLoadingTeacherSubjects(false)
+                    setSubjectLevelFilter('')
                     fetchAllData()
                 } else {
                     alert('All assignments failed. They may already exist.')
@@ -496,10 +604,18 @@ export default function AddClassesPage() {
     }
 
     const getFilteredSubjects = () => {
-        return subjects.filter(subject =>
-            subject.name.toLowerCase().includes(subjectSearch.toLowerCase()) ||
-            subject.code.toLowerCase().includes(subjectSearch.toLowerCase())
-        )
+        // Filter by level (from all subjects)
+        let subjectsToFilter = subjects.filter(subject => {
+            const matchesLevel = !subjectLevelFilter || subject.level === subjectLevelFilter
+            return matchesLevel
+        })
+
+        // Apply search filter
+        return subjectsToFilter.filter(subject => {
+            const matchesSearch = subject.name.toLowerCase().includes(subjectSearch.toLowerCase()) ||
+                                subject.code.toLowerCase().includes(subjectSearch.toLowerCase())
+            return matchesSearch
+        })
     }
 
     const getFilteredModules = () => {
@@ -515,6 +631,10 @@ export default function AddClassesPage() {
 
     const getUniqueTrades = () => {
         return Array.from(new Set(modules.map(m => m.trade).filter(Boolean)))
+    }
+
+    const getUniqueLevels = () => {
+        return Array.from(new Set(classes.map(c => c.level).filter(Boolean)))
     }
 
     const handleEditClass = (cls: Class) => {
@@ -649,7 +769,7 @@ export default function AddClassesPage() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <main className="max-w-7xl py-6 sm:px-6 lg:px-8">
                 <div className="px-4 py-6 sm:px-0">
                     {/* Action Bar */}
                     <div className="mb-8">
@@ -704,12 +824,6 @@ export default function AddClassesPage() {
                                     </div>
                                     <div className="text-sm text-gray-500">Total Modules Assigned</div>
                                 </div>
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-green-600">
-                                        {Array.isArray(classes) ? classes.reduce((sum, cls) => sum + cls._count.timetables, 0) : 0}
-                                    </div>
-                                    <div className="text-sm text-gray-500">Timetable Entries</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -758,12 +872,7 @@ export default function AddClassesPage() {
                                     {filteredClasses.map((cls) => (
                                         <div key={cls.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                                             <div className="flex items-center mb-3">
-                                                <div className="flex-shrink-0 h-10 w-10">
-                                                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                                                        <BookOpen className="h-5 w-5 text-green-600" />
-                                                    </div>
-                                                </div>
-                                                <div className="ml-3 flex-1">
+                                                <div className="flex-1">
                                                     <div className="text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600" onClick={() => handleClassDetails(cls)}>
                                                         {cls.name}
                                                     </div>
@@ -781,13 +890,13 @@ export default function AddClassesPage() {
                                             </div>
 
                                             <div className="text-xs text-gray-500 mb-3">
-                                                {cls.level.startsWith('L') ? cls._count.trainerClassModules : cls._count.subjects} {cls.level.startsWith('L') ? 'modules' : 'subjects'} • {cls._count.timetables} timetables
+                                                {cls.level.startsWith('L') ? cls._count.trainerClassModules : cls._count.subjects} {cls.level.startsWith('L') ? 'modules' : 'subjects'}
                                             </div>
 
                                             <div className="flex flex-col space-y-2">
                                                 <button
                                                     onClick={() => handleAssignToClass(cls)}
-                                                    className="inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                                                    className="inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                                                 >
                                                     <Plus className="h-4 w-4 mr-2" />
                                                     Assign
@@ -910,6 +1019,69 @@ export default function AddClassesPage() {
                                 <p className="text-xs text-gray-500 mt-1">
                                     Enter the stream (e.g., A, B, C for regular streams, ELTA, ELTB for special streams)
                                 </p>
+                            </div>
+
+                            {/* Optional: Assign Teacher and Subjects */}
+                            <div className="border-t pt-4">
+                                <h4 className="text-sm font-medium text-gray-700 mb-3">Optional: Auto-assign Teacher & Subjects</h4>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Assign Teacher
+                                        </label>
+                                        <select
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            value={selectedTeacherForNewClass}
+                                            onChange={(e) => {
+                                                setSelectedTeacherForNewClass(e.target.value)
+                                                fetchTeacherSubjectsForNewClass(e.target.value)
+                                            }}
+                                        >
+                                            <option value="">Select a teacher (optional)</option>
+                                            {trainers.map((trainer) => (
+                                                <option key={trainer.id} value={trainer.id}>
+                                                    {trainer.name} ({trainer.role})
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Select a teacher to automatically assign their subjects to this class
+                                        </p>
+                                    </div>
+
+                                    {teacherSubjectsForNewClass.length > 0 && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Select Subjects to Assign
+                                            </label>
+                                            <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
+                                                {teacherSubjectsForNewClass.map((subject) => (
+                                                    <label key={subject.id} className="flex items-center py-1">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedSubjectsForNewClass.includes(subject.id)}
+                                                            onChange={(e) => {
+                                                                if (e.target.checked) {
+                                                                    setSelectedSubjectsForNewClass([...selectedSubjectsForNewClass, subject.id])
+                                                                } else {
+                                                                    setSelectedSubjectsForNewClass(selectedSubjectsForNewClass.filter(id => id !== subject.id))
+                                                                }
+                                                            }}
+                                                            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                                                        />
+                                                        <span className="ml-2 text-sm text-gray-700">
+                                                            {subject.name} ({subject.code})
+                                                        </span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                Select subjects to automatically assign to this class
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="flex space-x-4 pt-4">
@@ -1073,121 +1245,118 @@ export default function AddClassesPage() {
                                     </h4>
 
                                     {assignmentType === 'subjects' ? (
-                                        <div>
-                                            <div className="flex justify-between items-center mb-2">
-                                                <label className="block text-sm font-medium text-gray-700">Select Subjects</label>
-                                                <div className="flex space-x-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setSelectedSubjects(getFilteredSubjects().map(s => s.id))}
-                                                        className="text-xs text-blue-600 hover:text-blue-800"
-                                                    >
-                                                        Select All
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setSelectedSubjects([])}
-                                                        className="text-xs text-gray-600 hover:text-gray-800"
-                                                    >
-                                                        Deselect All
-                                                    </button>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Select Teacher</label>
+                                                <div className="relative">
+                                                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Search teachers..."
+                                                        value={trainerSearch}
+                                                        onChange={(e) => setTrainerSearch(e.target.value)}
+                                                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    />
                                                 </div>
+                                                <select
+                                                    value={selectedTeacherForSubjects}
+                                                    onChange={(e) => setSelectedTeacherForSubjects(e.target.value)}
+                                                    className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                >
+                                                    <option value="">Choose a teacher...</option>
+                                                    {getFilteredTrainers().map(trainer => (
+                                                        <option key={trainer.id} value={trainer.id}>
+                                                            {trainer.name} ({trainer.email})
+                                                        </option>
+                                                    ))}
+                                                </select>
                                             </div>
 
-                                            <div className="mb-4">
-                                                <input
-                                                    type="text"
-                                                    placeholder="Search subjects..."
-                                                    value={subjectSearch}
-                                                    onChange={(e) => setSubjectSearch(e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                />
-                                            </div>
-
-                                            <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-md">
-                                                {getFilteredSubjects().length === 0 ? (
-                                                    <div className="p-4 text-center text-gray-500">
-                                                        No subjects found matching the search.
-                                                    </div>
-                                                ) : (
-                                                    <div className="divide-y divide-gray-200">
-                                                        {getFilteredSubjects().map(subject => (
-                                                            <label key={subject.id} className="flex items-center p-3 hover:bg-gray-50 cursor-pointer">
-                                                                <div className="flex items-center h-5">
-                                                                    {selectedSubjects.includes(subject.id) ? (
-                                                                        <CheckSquare className="h-5 w-5 text-blue-600" />
-                                                                    ) : (
-                                                                        <Square className="h-5 w-5 text-gray-400" />
-                                                                    )}
-                                                                </div>
-                                                                <div className="ml-3 flex-1">
-                                                                    <div className="text-sm font-medium text-gray-900">
-                                                                        {subject.name}
-                                                                    </div>
-                                                                    <div className="text-sm text-gray-500">
-                                                                        Code: {subject.code} • Level: {subject.level}
-                                                                    </div>
-                                                                </div>
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={selectedSubjects.includes(subject.id)}
-                                                                    onChange={() => handleSubjectToggle(subject.id)}
-                                                                    className="sr-only"
-                                                                />
-                                                            </label>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="mt-2 text-sm text-gray-600">
-                                                {selectedSubjects.length} of {getFilteredSubjects().length} subjects selected
-                                            </div>
-
-                                            {/* Teacher Selection for Automatic Assignment */}
-                                            <div className="mt-6 p-4 bg-gray-50 rounded-md">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <label className="block text-sm font-medium text-gray-700">
-                                                        Teacher Assignment (Optional)
-                                                    </label>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowTeacherSelection(!showTeacherSelection)}
-                                                        className="text-xs text-blue-600 hover:text-blue-800"
-                                                    >
-                                                        {showTeacherSelection ? 'Hide' : 'Show'} Teacher Selection
-                                                    </button>
-                                                </div>
-                                                <p className="text-xs text-gray-500 mb-3">
-                                                    Select a teacher to automatically create teacher-subject assignments that will appear in the Assignments dashboard.
-                                                </p>
-                                                
-                                                {showTeacherSelection && (
-                                                    <div>
-                                                        <div className="relative mb-3">
-                                                            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Search teachers..."
-                                                                value={trainerSearch}
-                                                                onChange={(e) => setTrainerSearch(e.target.value)}
-                                                                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                            />
-                                                        </div>
+                                            {selectedTeacherForSubjects && (
+                                                <div>
+                                                    {/* Level Selection */}
+                                                    <div className="mb-4">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Select Level</label>
                                                         <select
-                                                            value={selectedTeacherForSubjects}
-                                                            onChange={(e) => setSelectedTeacherForSubjects(e.target.value)}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                            value={subjectLevelFilter}
+                                                            onChange={(e) => setSubjectLevelFilter(e.target.value)}
+                                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                         >
-                                                            <option value="">Choose a teacher for automatic assignment...</option>
-                                                            {getFilteredTrainers().map(trainer => (
-                                                                <option key={trainer.id} value={trainer.id}>
-                                                                    {trainer.name} ({trainer.email})
-                                                                </option>
+                                                            <option value="">Choose a level...</option>
+                                                            {getUniqueLevels().sort().map(level => (
+                                                                <option key={level} value={level}>{level}</option>
                                                             ))}
                                                         </select>
                                                     </div>
-                                                )}
-                                            </div>
+
+                                                    {subjectLevelFilter && (
+                                                        <>
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <label className="block text-sm font-medium text-gray-700">Select Subjects</label>
+                                                                <div className="flex space-x-2">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={handleSelectAllSubjects}
+                                                                        className="text-xs text-blue-600 hover:text-blue-800"
+                                                                    >
+                                                                        {selectedSubjects.length === getFilteredSubjects().length ? 'Deselect All' : 'Select All'}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Subject Search */}
+                                                            <div className="mb-4">
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Search subjects..."
+                                                                    value={subjectSearch}
+                                                                    onChange={(e) => setSubjectSearch(e.target.value)}
+                                                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                                />
+                                                            </div>
+
+                                                            <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-md">
+                                                                {getFilteredSubjects().length === 0 ? (
+                                                                    <div className="p-4 text-center text-gray-500">
+                                                                        No subjects found matching the search.
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="divide-y divide-gray-200">
+                                                                        {getFilteredSubjects().map(subject => (
+                                                                            <label key={subject.id} className="flex items-center p-3 hover:bg-gray-50 cursor-pointer">
+                                                                                <div className="flex items-center h-5">
+                                                                                    {selectedSubjects.includes(subject.id) ? (
+                                                                                        <CheckSquare className="h-5 w-5 text-blue-600" />
+                                                                                    ) : (
+                                                                                        <Square className="h-5 w-5 text-gray-400" />
+                                                                                    )}
+                                                                                </div>
+                                                                                <div className="ml-3 flex-1">
+                                                                                    <div className="text-sm font-medium text-gray-900">
+                                                                                        {subject.name}
+                                                                                    </div>
+                                                                                    <div className="text-sm text-gray-500">
+                                                                                        Code: {subject.code} • Level: {subject.level}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    checked={selectedSubjects.includes(subject.id)}
+                                                                                    onChange={() => handleSubjectToggle(subject.id)}
+                                                                                    className="sr-only"
+                                                                                />
+                                                                            </label>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="mt-2 text-sm text-gray-600">
+                                                                {selectedSubjects.length} of {getFilteredSubjects().length} subjects selected
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
@@ -1339,7 +1508,7 @@ export default function AddClassesPage() {
                                         onClick={handleCreateAssignments}
                                         disabled={
                                             assignmentType === 'subjects'
-                                                ? selectedSubjects.length === 0
+                                                ? !selectedTeacherForSubjects || selectedSubjects.length === 0
                                                 : !selectedTrainer || selectedModules.length === 0
                                         }
                                         className="px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"

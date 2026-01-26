@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
             if (classLessons.length === 0) {
                 return NextResponse.json(
-                    { 
+                    {
                         error: `Cannot generate timetable for ${classExists.name} - no teacher or trainer assignments found.`,
                         classId: validatedData.classId,
                         className: classExists.name,

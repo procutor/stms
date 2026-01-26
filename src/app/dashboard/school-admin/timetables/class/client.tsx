@@ -5,7 +5,7 @@ import { Suspense } from 'react'
 
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Calendar, LogOut, ArrowLeft, Download, Eye, Printer, FileText, Trash2, Grid, List, BookOpen, File, Clock, X, Search, Filter } from 'lucide-react'
+import { Calendar, LogOut, ArrowLeft, Download, Eye, Printer, FileText, Trash2, Grid, List, BookOpen, File, Clock, X, Search, Filter, UserCheck, Plus, CheckSquare, Square, Save } from 'lucide-react'
 import Link from 'next/link'
 import CompactA4Timetable from '@/components/timetable/CompactA4Timetable'
 import { SinglePDFExportButton } from '@/components/pdf/PDFExportButton'
@@ -44,6 +44,36 @@ interface TimetableEntry {
         name: string
         isBreak: boolean
         breakType?: string
+    }
+}
+
+interface ClassSubject {
+    id: string
+    classId: string
+    subjectId: string
+    class: {
+        name: string
+        level: string
+        stream: string
+    }
+    subject: {
+        id: string
+        name: string
+        code: string
+        level: string
+    }
+}
+
+interface TeacherSubject {
+    id: string
+    teacherId: string
+    subjectId: string
+    subject: {
+        id: string
+        name: string
+        code: string
+        level: string
+        periodsPerWeek: number
     }
 }
 
@@ -87,8 +117,17 @@ function ClassTimetablesContent() {
     const [viewMode, setViewMode] = useState<'regular' | 'compact' | 'list'>('regular')
     const [isClearing, setIsClearing] = useState(false)
     const [classes, setClasses] = useState<any[]>([])
+    const [teachers, setTeachers] = useState<any[]>([])
     const [searchTerm, setSearchTerm] = useState('')
     const [showFilters, setShowFilters] = useState(false)
+
+    // Assignment modal states
+    const [showAssignmentModal, setShowAssignmentModal] = useState(false)
+    const [selectedTeacherForAssignment, setSelectedTeacherForAssignment] = useState('')
+    const [classAssignments, setClassAssignments] = useState<ClassSubject[]>([])
+    const [teacherSubjects, setTeacherSubjects] = useState<TeacherSubject[]>([])
+    const [teacherClassAssignments, setTeacherClassAssignments] = useState<any[]>([])
+    const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
 
     useEffect(() => {
         if (session?.user) {
@@ -96,6 +135,11 @@ function ClassTimetablesContent() {
             fetchClasses()
         }
     }, [session])
+
+    // Reset selected subjects when teacher or class changes
+    useEffect(() => {
+        setSelectedSubjects([])
+    }, [selectedTeacherForAssignment, selectedClass])
 
     const fetchTimetables = async () => {
         try {
@@ -120,6 +164,82 @@ function ClassTimetablesContent() {
             }
         } catch (error) {
             console.error('Error fetching classes:', error)
+        }
+    }
+
+    const fetchTeacherSubjects = async (teacherId: string) => {
+        try {
+            const response = await fetch(`/api/teacher-subjects?teacherId=${teacherId}`)
+            if (response.ok) {
+                const data = await response.json()
+                setTeacherSubjects(data)
+            }
+        } catch (error) {
+            console.error('Error fetching teacher subjects:', error)
+        }
+    }
+
+    const fetchClassAssignments = async (classId: string) => {
+        try {
+            const response = await fetch(`/api/class-assignments?classId=${classId}`)
+            if (response.ok) {
+                const data = await response.json()
+                setClassAssignments(data.classSubjects || [])
+            }
+        } catch (error) {
+            console.error('Error fetching class assignments:', error)
+        }
+    }
+
+    const fetchTeacherClassAssignments = async () => {
+        try {
+            const response = await fetch('/api/teacher-class-assignments')
+            if (response.ok) {
+                const data = await response.json()
+                setTeacherClassAssignments(data.teacherClassSubjects || [])
+            }
+        } catch (error) {
+            console.error('Error fetching teacher class assignments:', error)
+        }
+    }
+
+    const handleTeacherClassSubjectAssignment = async (subjectIds: string[]) => {
+        if (!selectedTeacherForAssignment || !selectedClass || subjectIds.length === 0) return
+
+        try {
+            const assignments = subjectIds.map(subjectId => ({
+                teacherId: selectedTeacherForAssignment,
+                classId: selectedClass,
+                subjectId: subjectId
+            }))
+
+            const responses = await Promise.allSettled(
+                assignments.map(assignment =>
+                    fetch('/api/teacher-class-assignments', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(assignment)
+                    })
+                )
+            )
+
+            const successful = responses.filter(r => r.status === 'fulfilled' && r.value.ok).length
+            const failed = responses.length - successful
+
+            if (successful > 0) {
+                alert(`Successfully created ${successful} assignment(s). ${failed > 0 ? `${failed} failed due to duplicates.` : ''}`)
+                setSelectedTeacherForAssignment('')
+                setTeacherSubjects([])
+                setShowAssignmentModal(false)
+                fetchTeacherClassAssignments()
+            } else {
+                alert('All assignments failed. They may already exist.')
+            }
+        } catch (error) {
+            console.error('Assignment creation error:', error)
+            alert('An error occurred while creating the assignments')
         }
     }
 
@@ -437,6 +557,21 @@ function ClassTimetablesContent() {
                                     {selectedClass !== 'all' && ` • Class: ${classes.find(c => c.id === selectedClass)?.name || selectedClass}`}
                                     {searchTerm && ` • Search: "${searchTerm}"`}
                                 </span>
+                                {selectedClass !== 'all' && (
+                                    <button
+                                        onClick={() => {
+                                            setSelectedTeacherForAssignment('')
+                                            setTeacherSubjects([])
+                                            fetchClassAssignments(selectedClass)
+                                            fetchTeacherClassAssignments()
+                                            setShowAssignmentModal(true)
+                                        }}
+                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                                    >
+                                        <UserCheck className="h-4 w-4 mr-2" />
+                                        Assign to {classes.find(c => c.id === selectedClass)?.name || selectedClass}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -478,7 +613,8 @@ function ClassTimetablesContent() {
                                                             subject: t.subject,
                                                             module: t.module
                                                         }))}
-                                                        title={`${session.user.schoolName} - Class Timetable - ${timetable.name}`}
+                                                        title={`Class Timetable - ${timetable.name}`}
+                                                        schoolName={session.user.schoolName || undefined}
                                                         onExportStart={() => console.log('PDF export started')}
                                                         onExportComplete={() => console.log('PDF export completed')}
                                                         onExportError={(error) => console.error('PDF export failed:', error)}
@@ -567,6 +703,226 @@ function ClassTimetablesContent() {
                     )}
                 </div>
             </main>
+
+            {/* Assignment Modal */}
+            {showAssignmentModal && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-10 mx-auto p-6 border w-full max-w-4xl shadow-lg rounded-md bg-white max-h-screen overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-medium text-gray-900">Assign Teacher to Class Subjects</h3>
+                            <button onClick={() => {
+                                setShowAssignmentModal(false)
+                                setSelectedTeacherForAssignment('')
+                                setTeacherSubjects([])
+                            }}>
+                                <X className="h-6 w-6 text-gray-400" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-6">
+                            {/* Assignment Type Selection */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">What would you like to assign?</label>
+                                <div className="space-y-2">
+                                    <label className="flex items-center">
+                                        <input
+                                            type="radio"
+                                            name="assignmentType"
+                                            value="subjects"
+                                            checked={true}
+                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                        />
+                                        <span className="ml-2 text-sm text-gray-900">Subjects - Assign academic subjects to the class</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* Teacher Selection */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Select Teacher Name</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Search teachers..."
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                    <select
+                                        value={selectedTeacherForAssignment}
+                                        onChange={(e) => {
+                                            setSelectedTeacherForAssignment(e.target.value)
+                                            if (e.target.value) {
+                                                fetchTeacherSubjects(e.target.value)
+                                            } else {
+                                                setTeacherSubjects([])
+                                            }
+                                        }}
+                                        className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                        <option value="">Choose a teacher...</option>
+                                        {teachers.map(teacher => (
+                                            <option key={teacher.id} value={teacher.id}>
+                                                {teacher.name} ({teacher.email})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Subjects Selection */}
+                            {selectedTeacherForAssignment && selectedClass && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Subjects</label>
+                                    <div className="space-y-4">
+                                        {/* Search and Select All */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div className="relative">
+                                                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search subjects..."
+                                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                />
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const classSubjects = classAssignments
+                                                            .filter(ca => ca.classId === selectedClass)
+                                                            .map(ca => ca.subject)
+                                                        const teacherSubjectIds = teacherSubjects.map(ts => ts.subjectId)
+                                                        const assignableSubjects = classSubjects.filter(subject =>
+                                                            teacherSubjectIds.includes(subject.id)
+                                                        )
+                                                        const assignableSubjectIds = assignableSubjects.map(s => s.id)
+                                                        setSelectedSubjects(assignableSubjectIds)
+                                                    }}
+                                                    className="text-xs text-blue-600 hover:text-blue-800"
+                                                >
+                                                    Select All
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Subjects List */}
+                                        <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-md">
+                                            {(() => {
+                                                const classSubjects = classAssignments
+                                                    .filter(ca => ca.classId === selectedClass)
+                                                    .map(ca => ca.subject)
+
+                                                const teacherSubjectIds = teacherSubjects.map(ts => ts.subjectId)
+                                                const assignableSubjects = classSubjects.filter(subject =>
+                                                    teacherSubjectIds.includes(subject.id)
+                                                )
+
+                                                if (classSubjects.length === 0) {
+                                                    return (
+                                                        <div className="p-4 text-center text-gray-500">
+                                                            No subjects assigned to this class. Please assign subjects to the class first.
+                                                        </div>
+                                                    )
+                                                }
+
+                                                if (assignableSubjects.length === 0) {
+                                                    return (
+                                                        <div className="p-4 text-center text-gray-500">
+                                                            This teacher doesn't teach any subjects assigned to this class.
+                                                        </div>
+                                                    )
+                                                }
+
+                                                return (
+                                                    <div className="divide-y divide-gray-200">
+                                                        {assignableSubjects.map(subject => {
+                                                            const isAlreadyAssigned = teacherClassAssignments.some(
+                                                                assignment => assignment.teacherId === selectedTeacherForAssignment &&
+                                                                    assignment.classId === selectedClass &&
+                                                                    assignment.subjectId === subject.id
+                                                            )
+
+                                                            return (
+                                                                <label key={subject.id} className="flex items-center p-3 hover:bg-gray-50 cursor-pointer">
+                                                                    <div className="flex items-center h-5">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={selectedSubjects.includes(subject.id) || isAlreadyAssigned}
+                                                                            disabled={isAlreadyAssigned}
+                                                                            onChange={(e) => {
+                                                                                if (e.target.checked) {
+                                                                                    setSelectedSubjects(prev => [...prev, subject.id])
+                                                                                } else {
+                                                                                    setSelectedSubjects(prev => prev.filter(id => id !== subject.id))
+                                                                                }
+                                                                            }}
+                                                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
+                                                                        />
+                                                                    </div>
+                                                                    <div className="ml-3 flex-1">
+                                                                        <div className="text-sm font-medium text-gray-900">
+                                                                            {subject.name}
+                                                                        </div>
+                                                                        <div className="text-sm text-gray-500">
+                                                                            Code: {subject.code}
+                                                                        </div>
+                                                                    </div>
+                                                                    {isAlreadyAssigned && (
+                                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                                            Already Assigned
+                                                                        </span>
+                                                                    )}
+                                                                </label>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                )
+                                            })()}
+                                        </div>
+
+                                        <div className="text-sm text-gray-600">
+                                            {selectedSubjects.length} of {(() => {
+                                                const classSubjects = classAssignments
+                                                    .filter(ca => ca.classId === selectedClass)
+                                                    .map(ca => ca.subject)
+                                                const teacherSubjectIds = teacherSubjects.map(ts => ts.subjectId)
+                                                return classSubjects.filter(subject =>
+                                                    teacherSubjectIds.includes(subject.id)
+                                                ).length
+                                            })()} subjects selected
+                                        </div>
+
+                                        <div className="flex justify-end space-x-3 pt-4 border-t">
+                                            <button
+                                                onClick={() => {
+                                                    handleTeacherClassSubjectAssignment(selectedSubjects)
+                                                }}
+                                                disabled={selectedSubjects.length === 0}
+                                                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                                            >
+                                                <Save className="h-4 w-4 mr-2" />
+                                                Assign Selected Subjects ({selectedSubjects.length})
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex justify-end space-x-3 mt-6 pt-6 border-t">
+                            <button
+                                onClick={() => {
+                                    setShowAssignmentModal(false)
+                                    setSelectedTeacherForAssignment('')
+                                    setTeacherSubjects([])
+                                }}
+                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

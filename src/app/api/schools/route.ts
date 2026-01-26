@@ -285,49 +285,28 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url)
         const status = searchParams.get('status')
         const type = searchParams.get('type')
-        const page = parseInt(searchParams.get('page') || '1')
-        const limit = parseInt(searchParams.get('limit') || '10')
-        const skip = (page - 1) * limit
 
-        const [schools, totalCount] = await Promise.all([
-            db.school.findMany({
-                where: {
-                    ...(status && { status: status as any }),
-                    ...(type && { type: type as any })
-                },
-                include: {
-                    _count: {
-                        select: {
-                            users: true,
-                            classes: true,
-                            subjects: true,
-                            timetables: true
-                        }
+        const schools = await db.school.findMany({
+            where: {
+                ...(status && { status: status as any }),
+                ...(type && { type: type as any })
+            },
+            include: {
+                _count: {
+                    select: {
+                        users: true,
+                        classes: true,
+                        subjects: true,
+                        timetables: true
                     }
-                },
-                orderBy: {
-                    createdAt: 'desc'
-                },
-                skip,
-                take: limit
-            }),
-            db.school.count({
-                where: {
-                    ...(status && { status: status as any }),
-                    ...(type && { type: type as any })
                 }
-            })
-        ])
-
-        return NextResponse.json({
-            schools,
-            pagination: {
-                page,
-                limit,
-                totalCount,
-                totalPages: Math.ceil(totalCount / limit)
+            },
+            orderBy: {
+                createdAt: 'desc'
             }
         })
+
+        return NextResponse.json(schools)
 
     } catch (error) {
         console.error('Schools fetch error:', error)

@@ -398,9 +398,10 @@ function TimetablesContent() {
                                         subject: t.subject,
                                         module: t.module
                                     }))}
-                                    title={`${session.user.schoolName} - ${classId ? `Class Timetable - ${timetables[0]?.class?.name || 'Class'}` :
+                                    title={`${classId ? `Class Timetable - ${timetables[0]?.class?.name || 'Class'}` :
                                                           teacherId ? `Teacher Timetable - ${timetables[0]?.teacher?.name || 'Teacher'}` :
                                                           'School Timetable'}`}
+                                    schoolName={session.user.schoolName || undefined}
                                     onExportStart={() => console.log('PDF export started')}
                                     onExportComplete={() => console.log('PDF export completed')}
                                     onExportError={(error) => console.error('PDF export failed:', error)}

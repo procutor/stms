@@ -105,9 +105,13 @@ export async function GET(request: NextRequest) {
             include: {
                 _count: {
                     select: {
-                        subjects: true,
                         timetables: true,
                         trainerClassModules: true
+                    }
+                },
+                teacherClassSubjects: {
+                    select: {
+                        subjectId: true
                     }
                 }
             },
@@ -117,7 +121,17 @@ export async function GET(request: NextRequest) {
             ]
         })
 
-        return NextResponse.json(classes)
+        // Compute distinct subjects count for each class
+        const classesWithSubjectCount = classes.map(cls => ({
+            ...cls,
+            _count: {
+                ...cls._count,
+                subjects: new Set(cls.teacherClassSubjects.map(tcs => tcs.subjectId)).size
+            },
+            teacherClassSubjects: undefined // Remove from response
+        }))
+
+        return NextResponse.json(classesWithSubjectCount)
 
     } catch (error) {
         console.error('Classes fetch error:', error)

@@ -82,9 +82,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { teacherId, classId, subjectId, moduleId, schoolId } = body;
 
+    console.log('Received assignment data:', { teacherId, classId, subjectId, moduleId, schoolId, sessionSchoolId: session.user.schoolId });
+
     // Ensure the schoolId matches the user's school
     const targetSchoolId = schoolId || session.user.schoolId;
-    
+
     if (targetSchoolId !== session.user.schoolId) {
       return NextResponse.json({ error: 'Invalid school access' }, { status: 403 });
     }
@@ -92,6 +94,42 @@ export async function POST(request: NextRequest) {
     let assignment;
 
     if (subjectId) {
+      // Check if the specific assignment already exists
+      const existing = await prisma.teacherClassSubject.findUnique({
+        where: {
+          teacherId_classId_subjectId: {
+            teacherId,
+            classId,
+            subjectId
+          }
+        },
+        include: {
+          teacher: {
+            select: { id: true, name: true, email: true }
+          },
+          class: {
+            select: { id: true, name: true, level: true, stream: true }
+          },
+          subject: {
+            select: { id: true, name: true, code: true }
+          }
+        }
+      });
+
+      if (existing) {
+        console.log('TeacherClassSubject assignment already exists:', existing);
+        return NextResponse.json(existing, { status: 200 });
+      }
+
+      // Delete any existing assignment for this subject in this class (replace)
+      await prisma.teacherClassSubject.deleteMany({
+        where: {
+          classId,
+          subjectId,
+          schoolId: targetSchoolId
+        }
+      });
+
       // Create TeacherClassSubject assignment
       assignment = await prisma.teacherClassSubject.create({
         data: {
@@ -113,6 +151,42 @@ export async function POST(request: NextRequest) {
         }
       });
     } else if (moduleId) {
+      // Check if the specific assignment already exists
+      const existing = await prisma.trainerClassModule.findUnique({
+        where: {
+          trainerId_classId_moduleId: {
+            trainerId: teacherId,
+            classId,
+            moduleId
+          }
+        },
+        include: {
+          trainer: {
+            select: { id: true, name: true, email: true }
+          },
+          class: {
+            select: { id: true, name: true, level: true, stream: true }
+          },
+          module: {
+            select: { id: true, name: true, code: true }
+          }
+        }
+      });
+
+      if (existing) {
+        console.log('TrainerClassModule assignment already exists:', existing);
+        return NextResponse.json(existing, { status: 200 });
+      }
+
+      // Delete any existing assignment for this module in this class (replace)
+      await prisma.trainerClassModule.deleteMany({
+        where: {
+          classId,
+          moduleId,
+          schoolId: targetSchoolId
+        }
+      });
+
       // Create TrainerClassModule assignment
       assignment = await prisma.trainerClassModule.create({
         data: {

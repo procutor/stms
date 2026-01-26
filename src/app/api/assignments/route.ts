@@ -187,12 +187,12 @@ export async function POST(request: NextRequest) {
         if (type === 'teacher-subject') {
             const validatedData = teacherSubjectAssignmentSchema.parse(assignmentData)
 
-            // Verify teacher belongs to school and is a teacher
+            // Verify teacher belongs to school and is a teacher or trainer
             const teacher = await db.user.findFirst({
                 where: {
                     id: validatedData.teacherId,
                     schoolId: session.user.schoolId,
-                    role: 'TEACHER'
+                    role: { in: ['TEACHER', 'TRAINER'] }
                 }
             })
 

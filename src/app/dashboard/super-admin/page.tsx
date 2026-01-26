@@ -43,19 +43,12 @@ export default function SuperAdminDashboard() {
     const [searchTerm, setSearchTerm] = useState('')
     const [schoolFilter, setSchoolFilter] = useState<'all' | 'approved' | 'pending'>('all')
     const [teacherFilter, setTeacherFilter] = useState<'all' | 'active' | 'inactive'>('all')
-    const [teacherCurrentPage, setTeacherCurrentPage] = useState(1)
-    const [teacherTotalPages, setTeacherTotalPages] = useState(1)
-    const [teacherTotalCount, setTeacherTotalCount] = useState(0)
     const [stats, setStats] = useState({
         totalSchools: 0,
         approvedSchools: 0,
         pendingSchools: 0,
         totalUsers: 0
     })
-    const [currentPage, setCurrentPage] = useState(1)
-    const [totalPages, setTotalPages] = useState(1)
-    const [totalSchoolsCount, setTotalSchoolsCount] = useState(0)
-    const itemsPerPage = 10
 
     // Form state for adding new school
     const [newSchool, setNewSchool] = useState({
@@ -102,8 +95,8 @@ export default function SuperAdminDashboard() {
             router.push('/auth/signin')
             return
         }
-        fetchSchoolsData(currentPage)
-    }, [session, status, router, currentPage])
+        fetchSchoolsData()
+    }, [session, status, router])
 
     // Populate edit form when editSchool changes
     useEffect(() => {
@@ -134,26 +127,18 @@ export default function SuperAdminDashboard() {
         }
     }, [editTeacher])
 
-    const fetchSchoolsData = async (page = 1) => {
+    const fetchSchoolsData = async () => {
         try {
-            const params = new URLSearchParams({
-                page: page.toString(),
-                limit: itemsPerPage.toString()
-            })
-            const response = await fetch(`/api/schools?${params}`)
+            const response = await fetch('/api/schools')
             if (response.ok) {
                 const data = await response.json()
-                setSchools(data.schools)
-                setTotalPages(data.pagination.totalPages)
-                setTotalSchoolsCount(data.pagination.totalCount)
-                setCurrentPage(data.pagination.page)
+                setSchools(data.schools || data)
 
-                // Calculate stats - we need all schools for accurate stats
-                // For now, we'll use the paginated data, but ideally we'd have a separate stats endpoint
-                const totalSchools = data.pagination.totalCount
-                const approvedSchools = data.schools.filter((s: School) => s.status === 'APPROVED').length
-                const pendingSchools = data.schools.filter((s: School) => s.status === 'PENDING').length
-                const totalUsers = data.schools.reduce((sum: number, school: School) => sum + school._count.users, 0)
+                // Calculate stats from all schools
+                const totalSchools = data.schools?.length || data.length || 0
+                const approvedSchools = (data.schools || data).filter((s: School) => s.status === 'APPROVED').length
+                const pendingSchools = (data.schools || data).filter((s: School) => s.status === 'PENDING').length
+                const totalUsers = (data.schools || data).reduce((sum: number, school: School) => sum + school._count.users, 0)
 
                 setStats({
                     totalSchools,
@@ -169,20 +154,13 @@ export default function SuperAdminDashboard() {
         }
     }
 
-    const fetchTeachersData = async (page = 1) => {
+    const fetchTeachersData = async () => {
         try {
             setTeachersLoading(true)
-            const params = new URLSearchParams({
-                page: page.toString(),
-                limit: itemsPerPage.toString()
-            })
-            const response = await fetch(`/api/super-admin/teachers?${params}`)
+            const response = await fetch('/api/super-admin/teachers')
             if (response.ok) {
                 const data = await response.json()
-                setTeachersData(data)
-                setTeacherTotalPages(data.pagination.totalPages)
-                setTeacherTotalCount(data.pagination.totalCount)
-                setTeacherCurrentPage(data.pagination.page)
+                setTeachersData(data.teachers || data)
             }
         } catch (error) {
             console.error('Error fetching teachers:', error)
@@ -268,7 +246,7 @@ export default function SuperAdminDashboard() {
             if (response.ok) {
                 // Refresh teachers data to show updated status
                 if (teachersData) {
-                    fetchTeachersData(teacherCurrentPage)
+                    fetchTeachersData()
                 }
             }
         } catch (error) {
@@ -306,7 +284,7 @@ export default function SuperAdminDashboard() {
 
             if (response.ok) {
                 alert(`✅ Teacher "${teacherName}" has been permanently deleted along with all their assignments.`)
-                await fetchTeachersData(teacherCurrentPage) // Refresh data
+                await fetchTeachersData() // Refresh data
             } else {
                 alert(`❌ Failed to delete teacher: ${data.error || 'Unknown error occurred'}`)
             }
@@ -359,7 +337,7 @@ export default function SuperAdminDashboard() {
                     adminName: '',
                     adminPassword: ''
                 })
-                await fetchSchoolsData(currentPage) // Refresh the schools list
+                await fetchSchoolsData() // Refresh the schools list
             } else {
                 alert(`❌ Failed to create school: ${data.error || 'Unknown error occurred'}`)
             }
@@ -398,7 +376,7 @@ export default function SuperAdminDashboard() {
                 alert(`✅ School "${editSchoolForm.schoolName}" has been updated successfully!`)
                 setShowEditSchool(false)
                 setEditSchool(null)
-                await fetchSchoolsData(currentPage) // Refresh the schools list
+                await fetchSchoolsData() // Refresh the schools list
             } else {
                 alert(`❌ Failed to update school: ${data.error || 'Unknown error occurred'}`)
             }
@@ -434,7 +412,7 @@ export default function SuperAdminDashboard() {
                 alert(`✅ Teacher "${editTeacherForm.name}" has been updated successfully!`)
                 setShowEditTeacher(false)
                 setEditTeacher(null)
-                await fetchTeachersData(teacherCurrentPage) // Refresh the teachers list
+                await fetchTeachersData() // Refresh the teachers list
             } else {
                 alert(`❌ Failed to update teacher: ${data.error || 'Unknown error occurred'}`)
             }
@@ -570,7 +548,7 @@ export default function SuperAdminDashboard() {
                                 onClick={() => {
                                     setActiveTab('teachers')
                                     if (!teachersData) {
-                                        fetchTeachersData(teacherCurrentPage)
+                                        fetchTeachersData()
                                     }
                                 }}
                                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -934,37 +912,6 @@ export default function SuperAdminDashboard() {
                                             </div>
                                         )}
 
-                                        {/* Pagination */}
-                                        {totalPages > 1 && (
-                                            <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
-                                                <div className="flex items-center">
-                                                    <p className="text-sm text-gray-700">
-                                                        Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
-                                                        <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalSchoolsCount)}</span> of{' '}
-                                                        <span className="font-medium">{totalSchoolsCount}</span> results
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <button
-                                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                                        disabled={currentPage === 1}
-                                                        className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    >
-                                                        Previous
-                                                    </button>
-                                                    <span className="text-sm text-gray-700">
-                                                        Page {currentPage} of {totalPages}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                                        disabled={currentPage === totalPages}
-                                                        className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    >
-                                                        Next
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             </>
@@ -1322,45 +1269,6 @@ export default function SuperAdminDashboard() {
                                                     </div>
                                                 )}
 
-                                                {/* Pagination */}
-                                                {teacherTotalPages > 1 && (
-                                                    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
-                                                        <div className="flex items-center">
-                                                            <p className="text-sm text-gray-700">
-                                                                Showing <span className="font-medium">{(teacherCurrentPage - 1) * itemsPerPage + 1}</span> to{' '}
-                                                                <span className="font-medium">{Math.min(teacherCurrentPage * itemsPerPage, teacherTotalCount)}</span> of{' '}
-                                                                <span className="font-medium">{teacherTotalCount}</span> results
-                                                            </p>
-                                                        </div>
-                                                        <div className="flex items-center space-x-2">
-                                                            <button
-                                                                onClick={() => {
-                                                                    const newPage = Math.max(teacherCurrentPage - 1, 1)
-                                                                    setTeacherCurrentPage(newPage)
-                                                                    fetchTeachersData(newPage)
-                                                                }}
-                                                                disabled={teacherCurrentPage === 1}
-                                                                className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                            >
-                                                                Previous
-                                                            </button>
-                                                            <span className="text-sm text-gray-700">
-                                                                Page {teacherCurrentPage} of {teacherTotalPages}
-                                                            </span>
-                                                            <button
-                                                                onClick={() => {
-                                                                    const newPage = Math.min(teacherCurrentPage + 1, teacherTotalPages)
-                                                                    setTeacherCurrentPage(newPage)
-                                                                    fetchTeachersData(newPage)
-                                                                }}
-                                                                disabled={teacherCurrentPage === teacherTotalPages}
-                                                                className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                            >
-                                                                Next
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
                                             </div>
                                         ) : (
                                             <div className="text-center py-8">

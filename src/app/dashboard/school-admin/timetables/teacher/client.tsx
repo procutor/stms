@@ -489,7 +489,8 @@ function TeacherTimetablesContent() {
                                                             subject: t.subject,
                                                             module: t.module
                                                         }))}
-                                                        title={`${session.user.schoolName} - Teacher Timetable - ${timetable.name}`}
+                                                        title={`Teacher Timetable - ${timetable.name}`}
+                                                        schoolName={session.user.schoolName || undefined}
                                                         onExportStart={() => console.log('PDF export started')}
                                                         onExportComplete={() => console.log('PDF export completed')}
                                                         onExportError={(error) => console.error('PDF export failed:', error)}

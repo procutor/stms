@@ -92,10 +92,7 @@ export class TimetablePDFExporter {
 
       this.pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
 
-      // Add watermark if school name is provided
-      if (options.schoolName) {
-        this.addWatermark(options.schoolName)
-      }
+      // School name is already included in the header HTML, no need for watermark
 
       // Save the PDF
       const fileName = options.fileName || `timetable_${new Date().toISOString().split('T')[0]}.pdf`
@@ -107,23 +104,6 @@ export class TimetablePDFExporter {
     }
   }
 
-  /**
-   * Add watermark to the PDF
-   */
-  private addWatermark(schoolName: string): void {
-    // Set watermark properties
-    this.pdf.setFont('helvetica', 'bold')
-    this.pdf.setFontSize(60)
-    this.pdf.setTextColor(200, 200, 200) // Light gray color
-    
-    // Calculate position to center the watermark
-    const textWidth = this.pdf.getTextWidth(schoolName)
-    const x = (this.pageWidth - textWidth) / 2
-    const y = this.pageHeight / 2
-    
-    // Add the watermark text (simple non-rotated version for compatibility)
-    this.pdf.text(schoolName, x, y)
-  }
 
   /**
    * Generate HTML for the compact A4 timetable
@@ -180,13 +160,13 @@ export class TimetablePDFExporter {
 
     const getEntryDisplay = (entry: TimetableEntry, isTeacherTimetable: boolean = false) => {
       const moduleName = entry.module?.name || entry.subject?.name || 'FREE'
-      
-      if (isTeacherTimetable && entry.class) {
-        // For teacher timetables, show class name instead of teacher name
-        const className = entry.class.name || 'Class'
+
+      if (isTeacherTimetable) {
+        // For teacher timetables, show module/subject and class name
+        const className = entry.class?.name || 'Class'
         return `${moduleName}\n${className}`
       } else {
-        // For class timetables, show full teacher name
+        // For class timetables, show module/subject and teacher/trainer name
         const teacherName = entry.teacher.name
         return `${moduleName}\n${teacherName}`
       }
@@ -213,6 +193,20 @@ export class TimetablePDFExporter {
           background: ${isTeacherTimetable ? 'linear-gradient(135deg, #1e40af 0%, #000000 100%)' : 'transparent'};
           border-radius: 2px;
         ">
+          ${options.schoolName ? `
+            <h2 style="
+              font-size: 20px;
+              font-weight: bold;
+              margin: 0 0 3mm 0;
+              color: ${isTeacherTimetable ? '#ffffff' : '#000000'};
+              text-shadow: ${isTeacherTimetable ? '1px 1px 2px rgba(0,0,0,0.7)' : 'none'};
+              background-color: ${isTeacherTimetable ? 'transparent' : '#f0f0f0'};
+              padding: 2mm;
+              border-radius: 2px;
+              text-align: center;
+              border: ${isTeacherTimetable ? 'none' : '1px solid #ccc'};
+            ">${options.schoolName}</h2>
+          ` : ''}
           <h1 style="
             font-size: 16px;
             font-weight: bold;
@@ -436,10 +430,7 @@ export class TimetablePDFExporter {
       this.pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
     }
 
-    // Add watermark if school name is provided (to the first page)
-    if (options.schoolName) {
-      this.addWatermark(options.schoolName)
-    }
+    // School name is already included in the header HTML, no need for watermark
 
     // Save with combined filename
     const fileName = options.fileName || `all_timetables_${new Date().toISOString().split('T')[0]}.pdf`
@@ -747,10 +738,7 @@ export class TeacherAssignmentsPDFExporter {
 
       this.pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
 
-      // Add watermark if school name is provided
-      if (options.schoolName) {
-        this.addWatermark(options.schoolName)
-      }
+      // School name is already included in the header HTML, no need for watermark
 
       // Save the PDF
       const fileName = options.fileName || `teacher_assignments_${new Date().toISOString().split('T')[0]}.pdf`
@@ -762,20 +750,6 @@ export class TeacherAssignmentsPDFExporter {
     }
   }
 
-  /**
-   * Add watermark to the PDF
-   */
-  private addWatermark(schoolName: string): void {
-    this.pdf.setFont('helvetica', 'bold')
-    this.pdf.setFontSize(40)
-    this.pdf.setTextColor(200, 200, 200)
-    
-    const textWidth = this.pdf.getTextWidth(schoolName)
-    const x = (this.pageWidth - textWidth) / 2
-    const y = this.pageHeight / 2
-    
-    this.pdf.text(schoolName, x, y)
-  }
 
   /**
    * Generate HTML for the assignments document

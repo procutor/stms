@@ -4,6 +4,102 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { z } from 'zod'
 
+// Helper function to auto-assign teachers to all existing class-subject combinations
+async function bulkAutoAssignTeachers(schoolId: string) {
+    try {
+        // Find all class_subjects for this school
+        const classSubjects = await db.classSubject.findMany({
+            where: {
+                class: { schoolId }
+            },
+            include: {
+                class: true,
+                subject: true
+            }
+        })
+
+        console.log(`Found ${classSubjects.length} class-subject assignments to process`)
+
+        // Auto-assign teachers for each class-subject combination
+        // createMany with skipDuplicates will handle existing assignments
+        for (const cs of classSubjects) {
+            await autoAssignTeachersToClassSubject(schoolId, cs.classId, cs.subjectId)
+        }
+
+        console.log('Bulk auto-assignment completed')
+    } catch (error) {
+        console.error('Error in bulk auto-assignment:', error)
+    }
+}
+
+// Helper function to auto-assign teachers to a class-subject combination
+async function autoAssignTeachersToClassSubject(schoolId: string, classId: string, subjectId: string) {
+    try {
+        // Get the class to determine its type
+        const classData = await db.class.findUnique({
+            where: { id: classId },
+            select: { level: true, name: true }
+        })
+
+        if (!classData) return
+
+        // Determine school type from class level
+        const determineSchoolType = (level: string | null): string => {
+            if (!level) return 'UNKNOWN'
+            if (level.startsWith('P') || level.startsWith('p')) return 'PRIMARY'
+            if (level.startsWith('S') || level.startsWith('s')) return 'SECONDARY'
+            if (level.startsWith('L') || level.startsWith('l')) return 'TSS'
+            return 'UNKNOWN'
+        }
+
+        const schoolType = determineSchoolType(classData.level)
+
+        // Find teachers who can teach this subject and are qualified for this school type
+        const qualifiedTeachers = await db.teacherSubject.findMany({
+            where: {
+                subjectId: subjectId,
+                teacher: {
+                    schoolId: schoolId,
+                    role: 'TEACHER',
+                    isActive: true,
+                    teachingStreams: {
+                        contains: schoolType
+                    }
+                }
+            },
+            select: {
+                teacherId: true
+            }
+        })
+
+        // Create teacher_class_subject assignments for qualified teachers
+        const assignments = qualifiedTeachers.map(teacher => ({
+            teacherId: teacher.teacherId,
+            classId: classId,
+            subjectId: subjectId,
+            schoolId: schoolId
+        }))
+
+        if (assignments.length > 0) {
+            // Create assignments, skip if they already exist
+            for (const assignment of assignments) {
+                try {
+                    await db.teacherClassSubject.create({
+                        data: assignment
+                    })
+                } catch (error) {
+                    // Skip if already exists (unique constraint violation)
+                    console.log(`Assignment already exists for teacher ${assignment.teacherId} in class ${assignment.classId} for subject ${assignment.subjectId}`)
+                }
+            }
+            console.log(`Auto-assigned ${assignments.length} teachers to ${classData.name} for subject ${subjectId}`)
+        }
+
+    } catch (error) {
+        console.error('Error in auto-assigning teachers:', error)
+    }
+}
+
 export const dynamic = 'force-dynamic'
 
 const createSchema = z.object({
@@ -23,6 +119,13 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json()
+
+        // Check if this is a bulk auto-assign request
+        if (body.action === 'bulk-auto-assign') {
+            await bulkAutoAssignTeachers(session.user.schoolId!)
+            return NextResponse.json({ message: 'Bulk auto-assignment completed' })
+        }
+
         const validatedData = createSchema.parse(body)
 
         // Verify class exists and belongs to school
@@ -79,6 +182,9 @@ export async function POST(request: NextRequest) {
                 subjectId: validatedData.subjectId
             }
         })
+
+        // Auto-assign teachers to this subject-class combination
+        await autoAssignTeachersToClassSubject(session.user.schoolId!, validatedData.classId, validatedData.subjectId)
 
         return NextResponse.json(assignment)
 
