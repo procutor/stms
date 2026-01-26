@@ -160,7 +160,7 @@ export default function SuperAdminDashboard() {
             const response = await fetch('/api/super-admin/teachers')
             if (response.ok) {
                 const data = await response.json()
-                setTeachersData(data.teachers || data)
+                setTeachersData(data)
             }
         } catch (error) {
             console.error('Error fetching teachers:', error)
