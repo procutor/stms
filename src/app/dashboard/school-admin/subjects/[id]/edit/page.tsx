@@ -7,14 +7,19 @@ import { BookOpen, LogOut, ArrowLeft, Save, X } from 'lucide-react'
 import Link from 'next/link'
 import SchoolAdminSidebar from '@/components/layout/SchoolAdminSidebar'
 
-const SUBJECT_LEVELS = ['L3', 'L4', 'L5', 'SECONDARY']
-
 interface Subject {
     id: string
     name: string
     code: string
     level: string
     periodsPerWeek: number
+}
+
+interface Class {
+    id: string
+    name: string
+    level: string
+    stream: string | null
 }
 
 export default function EditSubject() {
@@ -24,6 +29,8 @@ export default function EditSubject() {
     const subjectId = params!.id as string
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
+    const [classesLoading, setClassesLoading] = useState(true)
+    const [classes, setClasses] = useState<Class[]>([])
     const [formData, setFormData] = useState({
         name: '',
         code: '',
@@ -34,6 +41,7 @@ export default function EditSubject() {
     useEffect(() => {
         if (session?.user && subjectId) {
             fetchSubject()
+            fetchClasses()
         }
     }, [session, subjectId])
 
@@ -53,6 +61,20 @@ export default function EditSubject() {
             console.error('Error fetching subject:', error)
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const fetchClasses = async () => {
+        try {
+            const response = await fetch('/api/classes')
+            if (response.ok) {
+                const classesData = await response.json()
+                setClasses(classesData)
+            }
+        } catch (error) {
+            console.error('Error fetching classes:', error)
+        } finally {
+            setClassesLoading(false)
         }
     }
 
@@ -87,7 +109,7 @@ export default function EditSubject() {
         navigate.push('/auth/signin')
     }
 
-    if (status === 'loading' || isLoading) {
+    if (status === 'loading' || isLoading || classesLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-lg">Loading...</div>
@@ -191,7 +213,7 @@ export default function EditSubject() {
 
                                         <div>
                                             <label htmlFor="level" className="block text-sm font-medium text-gray-700">
-                                                Level *
+                                                Class *
                                             </label>
                                             <select
                                                 id="level"
@@ -200,10 +222,10 @@ export default function EditSubject() {
                                                 onChange={(e) => setFormData({ ...formData, level: e.target.value })}
                                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                             >
-                                                <option value="">Select level</option>
-                                                {SUBJECT_LEVELS.map(level => (
-                                                    <option key={level} value={level}>
-                                                        {level}
+                                                <option value="">Select class</option>
+                                                {classes.map(cls => (
+                                                    <option key={cls.id} value={cls.name}>
+                                                        {cls.name}
                                                     </option>
                                                 ))}
                                             </select>

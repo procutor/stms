@@ -6,7 +6,6 @@ import { useState, useEffect } from 'react'
 import { BookOpen, LogOut, ArrowLeft, Save, X } from 'lucide-react'
 import Link from 'next/link'
 
-const MODULE_LEVELS = ['L3', 'L4', 'L5', 'SECONDARY']
 const MODULE_CATEGORIES = [
     { value: 'SPECIFIC', label: 'Specific', description: 'Technical specialization modules' },
     { value: 'GENERAL', label: 'General', description: 'General education modules' },
@@ -23,6 +22,13 @@ interface Module {
     category: string
 }
 
+interface Class {
+    id: string
+    name: string
+    level: string
+    stream?: string
+}
+
 export default function EditModule() {
     const { data: session, status } = useSession()
     const params = useParams()
@@ -30,6 +36,7 @@ export default function EditModule() {
     const moduleId = params!.id as string
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
+    const [classes, setClasses] = useState<Class[]>([])
     const [formData, setFormData] = useState({
         name: '',
         code: '',
@@ -40,8 +47,11 @@ export default function EditModule() {
     })
 
     useEffect(() => {
-        if (session?.user && moduleId) {
-            fetchModule()
+        if (session?.user) {
+            if (moduleId) {
+                fetchModule()
+            }
+            fetchClasses()
         }
     }, [session, moduleId])
 
@@ -67,6 +77,20 @@ export default function EditModule() {
             alert('Error loading module')
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const fetchClasses = async () => {
+        try {
+            const response = await fetch('/api/classes')
+            if (response.ok) {
+                const classesData = await response.json()
+                setClasses(classesData)
+            } else {
+                console.error('Error fetching classes')
+            }
+        } catch (error) {
+            console.error('Error fetching classes:', error)
         }
     }
 
@@ -218,7 +242,7 @@ export default function EditModule() {
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Level
+                                            Class
                                         </label>
                                         <select
                                             value={formData.level}
@@ -226,10 +250,10 @@ export default function EditModule() {
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             required
                                         >
-                                            <option value="">Select level</option>
-                                            {MODULE_LEVELS.map(level => (
-                                                <option key={level} value={level}>
-                                                    {level} {level === 'SECONDARY' ? '(Secondary School)' : '(TSS Level)'}
+                                            <option value="">Select class</option>
+                                            {classes.map(cls => (
+                                                <option key={cls.id} value={cls.name}>
+                                                    {cls.name} ({cls.level})
                                                 </option>
                                             ))}
                                         </select>
@@ -306,7 +330,7 @@ export default function EditModule() {
                                         <div className="text-sm text-gray-600">
                                             <div><strong>Name:</strong> {formData.name}</div>
                                             <div><strong>Code:</strong> {formData.code}</div>
-                                            <div><strong>Level:</strong> {formData.level}</div>
+                                            <div><strong>Class:</strong> {formData.level}</div>
                                             {formData.trade && <div><strong>Trade:</strong> {formData.trade}</div>}
                                             <div><strong>Category:</strong> {MODULE_CATEGORIES.find(c => c.value === formData.category)?.label}</div>
                                             <div><strong>Periods/Week:</strong> {formData.totalHours}</div>

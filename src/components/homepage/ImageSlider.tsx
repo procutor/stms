@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
@@ -15,19 +15,22 @@ interface ImageSliderProps {
   autoPlayDelay?: number
 }
 
-export default function ImageSlider({ 
-  images, 
-  autoPlay = true, 
-  autoPlayDelay = 5000 
+export default function ImageSlider({
+  images,
+  autoPlay = true,
+  autoPlayDelay = 5000
 }: ImageSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
 
   // Auto-play functionality
-  if (autoPlay) {
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length)
-    }, autoPlayDelay)
-  }
+  useEffect(() => {
+    if (autoPlay && images.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % images.length)
+      }, autoPlayDelay)
+      return () => clearInterval(interval)
+    }
+  }, [autoPlay, autoPlayDelay, images.length])
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % images.length)

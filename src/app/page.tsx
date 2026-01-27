@@ -52,19 +52,19 @@ export default function HomePage() {
               <ImageSlider
                 images={[
                   {
-                    src: '/slider-image-1.jpg.jpg',
+                    src: '/slider-image-1.jpg',
                     alt: 'School Timetable Management System - Dashboard View',
                     title: 'Intelligent Dashboard',
                     description: 'Comprehensive overview of all timetables and schedules'
                   },
                   {
-                    src: '/slider-image-2.jpg.png',
+                    src: '/slider-image-2.png',
                     alt: 'School Timetable Management System - Teacher Assignments',
                     title: 'Teacher Management',
                     description: 'Efficient teacher assignment and workload balancing'
                   },
                   {
-                    src: '/slider-image-3.jpg.jpg',
+                    src: '/slider-image-3.jpg',
                     alt: 'School Timetable Management System - Class Schedules',
                     title: 'Class Scheduling',
                     description: 'Automated class scheduling with conflict detection'

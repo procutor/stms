@@ -498,9 +498,9 @@ async function processClasses(dataRows: string[], headers: string[], schoolId: s
 
 async function processTeachers(dataRows: string[], headers: string[], schoolId: string, schoolName: string, errors: string[], separator: string = ','): Promise<number> {
     let processed = 0
-    
-    // Generate default password: {schoolName}@123
-    const defaultPassword = `${schoolName}@123`
+
+    // Use default password for all teachers: Rwanda@123
+    const defaultPassword = 'Rwanda@123'
     
     for (let i = 0; i < dataRows.length; i++) {
         try {

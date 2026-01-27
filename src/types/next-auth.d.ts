@@ -1,34 +1,31 @@
-import NextAuth, { DefaultSession, DefaultUser } from 'next-auth'
-import { UserRole } from '@prisma/client'
+import { DefaultSession } from 'next-auth'
 
 declare module 'next-auth' {
   interface Session {
     user: {
       id: string
-      role: UserRole
+      role: string
       schoolId: string | null
-      schoolName: string | null
-      schoolType?: string | null
-      teachingStreams?: string | null
-      maxWeeklyHours?: number | null
+      schoolName: string
+      teachingStreams: string[] | null
+      maxWeeklyHours: number | null
     } & DefaultSession['user']
   }
 
-  interface User extends DefaultUser {
-    role: UserRole
+  interface User {
+    role: string
     schoolId: string | null
-    schoolName: string | null
-    teachingStreams?: string | null
-    maxWeeklyHours?: number | null
+    teachingStreams: string[] | null
+    maxWeeklyHours: number | null
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    role: UserRole
+    role: string
     schoolId: string | null
-    schoolName: string | null
-    teachingStreams?: string | null
-    maxWeeklyHours?: number | null
+    schoolName: string
+    teachingStreams: string[] | null
+    maxWeeklyHours: number | null
   }
 }

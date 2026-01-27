@@ -21,7 +21,13 @@ interface Module {
     }
 }
 
-const MODULE_LEVELS = ['L3', 'L4', 'L5', 'SECONDARY']
+interface Class {
+    id: string
+    name: string
+    level: string
+    stream?: string
+}
+
 const MODULE_CATEGORIES = [
     { value: 'SPECIFIC', label: 'Specific', description: 'Technical specialization modules' },
     { value: 'GENERAL', label: 'General', description: 'General education modules' },
@@ -32,6 +38,7 @@ export default function ModulesList() {
     const { data: session, status } = useSession()
     const router = useRouter()
     const [modules, setModules] = useState<Module[]>([])
+    const [classes, setClasses] = useState<Class[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [filterLevel, setFilterLevel] = useState<string>('all')
     const [filterCategory, setFilterCategory] = useState<string>('all')
@@ -39,6 +46,7 @@ export default function ModulesList() {
     useEffect(() => {
         if (session?.user) {
             fetchModules()
+            fetchClasses()
         }
     }, [session])
 
@@ -53,6 +61,20 @@ export default function ModulesList() {
             console.error('Error fetching modules:', error)
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const fetchClasses = async () => {
+        try {
+            const response = await fetch('/api/classes')
+            if (response.ok) {
+                const classesData = await response.json()
+                setClasses(classesData)
+            } else {
+                console.error('Error fetching classes')
+            }
+        } catch (error) {
+            console.error('Error fetching classes:', error)
         }
     }
 
@@ -101,19 +123,9 @@ export default function ModulesList() {
         }
     }
 
-    const getLevelBadgeColor = (level: string) => {
-        switch (level) {
-            case 'L3':
-                return 'bg-red-100 text-red-800'
-            case 'L4':
-                return 'bg-orange-100 text-orange-800'
-            case 'L5':
-                return 'bg-yellow-100 text-yellow-800'
-            case 'SECONDARY':
-                return 'bg-indigo-100 text-indigo-800'
-            default:
-                return 'bg-gray-100 text-gray-800'
-        }
+    const getClassBadgeColor = (className: string) => {
+        // Use a consistent color for class badges
+        return 'bg-blue-100 text-blue-800'
     }
 
     if (status === 'loading' || isLoading) {
@@ -218,8 +230,10 @@ export default function ModulesList() {
                                             className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                                         >
                                             <option value="all">All Levels</option>
-                                            {MODULE_LEVELS.map(level => (
-                                                <option key={level} value={level}>{level}</option>
+                                            {classes.map(cls => (
+                                                <option key={cls.id} value={cls.level}>
+                                                    {cls.name}
+                                                </option>
                                             ))}
                                         </select>
                                     </div>
@@ -282,7 +296,7 @@ export default function ModulesList() {
                                                     Module Details
                                                 </th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Level & Category
+                                                    Class & Category
                                                 </th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Trade
@@ -320,7 +334,7 @@ export default function ModulesList() {
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex flex-col space-y-1">
-                                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit ${getLevelBadgeColor(module.level)}`}>
+                                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit ${getClassBadgeColor(module.level)}`}>
                                                                 {module.level}
                                                             </span>
                                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit ${getCategoryBadgeColor(module.category)}`}>
