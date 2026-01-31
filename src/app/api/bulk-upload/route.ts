@@ -171,17 +171,18 @@ async function processSubjects(dataRows: string[], headers: string[], schoolId: 
 
             console.log(`Subject Row ${i + 1} - Subject data with defaults:`, subjectData)
 
-            // Check for duplicates
+            // Check for duplicates (same code + same level = duplicate, same code + different level = allowed)
             const existing = await prisma.subject.findFirst({
                 where: {
                     code: subjectData.code,
+                    level: subjectData.level,
                     schoolId: schoolId
                 }
             })
 
             if (existing) {
-                errors.push(`Row ${i + 2}: Subject with code "${subjectData.code}" already exists`)
-                console.log(`Subject Row ${i + 1} - Duplicate found for code: ${subjectData.code}`)
+                errors.push(`Row ${i + 2}: Subject with code "${subjectData.code}" for level "${subjectData.level}" already exists`)
+                console.log(`Subject Row ${i + 1} - Duplicate found for code: ${subjectData.code}, level: ${subjectData.level}`)
                 continue
             }
 

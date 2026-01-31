@@ -3,6 +3,18 @@ import { getModuleCategoryPriority, isMorningPeriod } from '@/lib/utils'
 import { TimetableGenerationOptions, ConflictResolution } from '@/types'
 import { PreparedLesson, prepareLessonsForSchool } from '@/lib/lesson-preparation'
 
+// CPD (Continuous Professional Development) time slot constant for upper primary
+// Time: 15:30-16:50 (last period of the day)
+const CPD_TIME_SLOTS = {
+    MONDAY: { period: 13, startTime: '15:30', endTime: '16:50' },
+    TUESDAY: { period: 13, startTime: '15:30', endTime: '16:50' },
+    WEDNESDAY: { period: 13, startTime: '15:30', endTime: '16:50' },
+    THURSDAY: { period: 13, startTime: '15:30', endTime: '16:50' },
+    FRIDAY: { period: 13, startTime: '15:30', endTime: '16:50' }
+}
+
+const UPPER_PRIMARY_LEVELS = ['P4', 'P5', 'P6', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6']
+
 interface ScheduleSlot {
     day: string
     period: number
@@ -39,13 +51,14 @@ export class TimetableGenerator {
     private teacherAvailability: TeacherAvailability = {}
     private classAvailability: ClassAvailability = {}
     private conflicts: ConflictResolution[] = []
+    private warnings: ConflictResolution[] = []  // For relaxed rules, NOT blocking errors
     private timeSlotsCache: any[] = [] // Cache time slots for break checking
 
     constructor(schoolId: string) {
         this.schoolId = schoolId
     }
 
-    async generate(): Promise<{ success: boolean; conflicts: ConflictResolution[] }> {
+    async generate(): Promise<{ success: boolean; conflicts: ConflictResolution[]; warnings: ConflictResolution[] }> {
         try {
             // Clear existing timetables for full school generation
             await db.timetable.deleteMany({
@@ -76,7 +89,7 @@ export class TimetableGenerator {
             const validTimeSlots = timeSlots.filter((ts: any) => {
                 const period = ts.period
                 const day = ts.day
-                const isValidPeriod = period >= 1 && period <= 10
+                const isValidPeriod = period >= 1 && period <= 13
                 const isValidDay = day !== 'SATURDAY' && ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'].includes(day)
                 const isNotBreak = !(ts as any).isBreak
                 return isValidPeriod && isValidDay && isNotBreak
@@ -90,7 +103,8 @@ export class TimetableGenerator {
                     conflicts: [{
                         type: 'unassigned',
                         message: `Not enough time slots available. Required: ${totalPeriods} periods, Available: ${validTimeSlots.length} slots. Please add more time slots or reduce lesson assignments.`
-                    }]
+                    }],
+                    warnings: []
                 }
             }
 
@@ -99,12 +113,16 @@ export class TimetableGenerator {
                 await this.scheduleLesson(lesson)
             }
 
+            // Schedule CPD for upper primary classes (S1-S6) at 15:30-16:50
+            await this.scheduleCPDForUpperPrimary()
+
             // Save all scheduled lessons to database
             await this.saveToDatabase()
 
             return {
                 success: true,
-                conflicts: this.conflicts
+                conflicts: this.conflicts,
+                warnings: this.warnings
             }
         } catch (error) {
             console.error('Timetable generation failed:', error)
@@ -113,12 +131,13 @@ export class TimetableGenerator {
                 conflicts: [...this.conflicts, {
                     type: 'unassigned',
                     message: 'Timetable generation failed due to an internal error'
-                }]
+                }],
+                warnings: this.warnings
             }
         }
     }
 
-    async generateForClass(classId: string, options: GenerationOptions = {}): Promise<{ success: boolean; conflicts: ConflictResolution[] }> {
+    async generateForClass(classId: string, options: GenerationOptions = {}): Promise<{ success: boolean; conflicts: ConflictResolution[]; warnings: ConflictResolution[] }> {
         try {
             const { incremental = false, regenerate = false } = options
 
@@ -146,7 +165,8 @@ export class TimetableGenerator {
                     conflicts: [{
                         type: 'unassigned',
                         message: 'No lessons found for the selected class'
-                    }]
+                    }],
+                    warnings: []
                 }
             }
 
@@ -168,7 +188,7 @@ export class TimetableGenerator {
             const validTimeSlots = timeSlots.filter((ts: any) => {
                 const period = ts.period
                 const day = ts.day
-                const isValidPeriod = period >= 1 && period <= 10
+                const isValidPeriod = period >= 1 && period <= 13
                 const isValidDay = day !== 'SATURDAY' && ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'].includes(day)
                 const isNotBreak = !(ts as any).isBreak
                 return isValidPeriod && isValidDay && isNotBreak
@@ -182,7 +202,8 @@ export class TimetableGenerator {
                     conflicts: [{
                         type: 'unassigned',
                         message: `Not enough time slots available for class. Required: ${totalPeriods} periods, Available: ${validTimeSlots.length} slots. Please add more time slots or reduce lesson assignments for this class.`
-                    }]
+                    }],
+                    warnings: []
                 }
             }
 
@@ -196,21 +217,29 @@ export class TimetableGenerator {
 
             return {
                 success: true,
-                conflicts: this.conflicts
+                conflicts: this.conflicts,
+                warnings: this.warnings
             }
         } catch (error) {
             console.error('Timetable generation for class failed:', error)
+            console.error('Error name:', (error as Error).name)
+            console.error('Error message:', (error as Error).message)
+            console.error('Error stack:', (error as Error).stack)
+            
+            // Return a more informative error message
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error'
             return {
                 success: false,
                 conflicts: [...this.conflicts, {
                     type: 'unassigned',
-                    message: 'Timetable generation for class failed due to an internal error'
-                }]
+                    message: `Timetable generation for class failed: ${errorMessage}`
+                }],
+                warnings: this.warnings
             }
         }
     }
 
-    async generateForTeacher(teacherId: string, options: GenerationOptions = {}): Promise<{ success: boolean; conflicts: ConflictResolution[] }> {
+    async generateForTeacher(teacherId: string, options: GenerationOptions = {}): Promise<{ success: boolean; conflicts: ConflictResolution[]; warnings: ConflictResolution[] }> {
         try {
             const { incremental = false, regenerate = false } = options
 
@@ -238,7 +267,8 @@ export class TimetableGenerator {
                     conflicts: [{
                         type: 'unassigned',
                         message: 'No lessons found for the selected teacher'
-                    }]
+                    }],
+                    warnings: []
                 }
             }
 
@@ -255,7 +285,8 @@ export class TimetableGenerator {
 
             return {
                 success: true,
-                conflicts: this.conflicts
+                conflicts: this.conflicts,
+                warnings: this.warnings
             }
         } catch (error) {
             console.error('Timetable generation for teacher failed:', error)
@@ -264,7 +295,8 @@ export class TimetableGenerator {
                 conflicts: [...this.conflicts, {
                     type: 'unassigned',
                     message: 'Timetable generation for teacher failed due to an internal error'
-                }]
+                }],
+                warnings: this.warnings
             }
         }
     }
@@ -388,6 +420,20 @@ export class TimetableGenerator {
 
         // Mark occupied slots from existing timetables (global teacher availability)
         for (const timetable of existingTimetables) {
+            // CRITICAL: Skip if teacherId or classId is missing
+            if (!timetable.teacherId || !timetable.classId) {
+                console.warn(`⚠️ Skipping timetable entry with missing teacher or class ID:`, timetable)
+                continue
+            }
+            
+            // CRITICAL: Ensure availability maps have entries for this teacher/class
+            if (!this.teacherAvailability[timetable.teacherId]) {
+                this.teacherAvailability[timetable.teacherId] = new Set()
+            }
+            if (!this.classAvailability[timetable.classId]) {
+                this.classAvailability[timetable.classId] = new Set()
+            }
+            
             const slotKey = `${timetable.timeSlot.day}-${timetable.timeSlot.period}`
             
             // Mark teacher as unavailable (global across all classes)
@@ -401,17 +447,42 @@ export class TimetableGenerator {
     }
 
     private sortLessonsByPriorityAndTime(lessons: PreparedLesson[]): PreparedLesson[] {
-        return lessons.sort((a, b) => {
-            // PRIORITY ORDER (FINAL)
-            // 1) SPECIFIC modules (double periods)
-            // 2) GENERAL modules (double periods)
-            // 3) Mathematics & Physics (double periods)
-            // 4) Other required subjects
-            // 5) COMPLEMENTARY modules (fill FREE slots)
+        // ENHANCED SORTING WITH STRICT CONSECUTIVE-PERIOD HANDLING
+        //
+        // RULE 1: HIGH-PERIOD SUBJECTS (5+ periods/week) - placed FIRST
+        //         Must be distributed evenly across week
+        //
+        // RULE 2: MEDIUM-PERIOD SUBJECTS (3-4 periods/week) - placed NEXT
+        //         Can have up to 2 consecutive periods
+        //
+        // RULE 3: LOW-PERIOD SUBJECTS (1-2 periods/week) - placed LAST
+        //         Fill remaining gaps, no consecutiveness forced
+        //
+        // CONSECUTIVE PERIOD RULES:
+        // - Max 2 consecutive periods for same subject (>2 weekly periods)
+        // - If 2 consecutive causes conflict, reduce to 1 period
+        // - <2 weekly periods: no consecutiveness forced
 
-            // First, handle TSS modules by category
+        return lessons.sort((a, b) => {
+            // Calculate period categories for sorting
+            const getPeriodCategory = (lesson: PreparedLesson): number => {
+                const periods = lesson.periodsPerWeek || lesson.totalLessons || 2
+                if (periods >= 5) return 1  // HIGH-PERIOD: highest priority
+                if (periods >= 3) return 2  // MEDIUM-PERIOD: normal priority
+                return 3  // LOW-PERIOD: lowest priority (fill gaps)
+            }
+
+            // First, sort by period category (HIGH -> MEDIUM -> LOW)
+            const categoryA = getPeriodCategory(a)
+            const categoryB = getPeriodCategory(b)
+            
+            if (categoryA !== categoryB) {
+                return categoryA - categoryB
+            }
+
+            // Within same category, sort by lesson type priority
             if (a.lessonType === 'TSS' && b.lessonType === 'TSS') {
-                const categoryOrder = { 'SPECIFIC': 1, 'GENERAL': 2, 'COMPLEMENTARY': 5 }
+                const categoryOrder = { 'SPECIFIC': 1, 'GENERAL': 2, 'COMPLEMENTARY': 3 }
                 const aCategory = (a.moduleCategory || 'COMPLEMENTARY') as keyof typeof categoryOrder
                 const bCategory = (b.moduleCategory || 'COMPLEMENTARY') as keyof typeof categoryOrder
 
@@ -419,19 +490,18 @@ export class TimetableGenerator {
                     return categoryOrder[aCategory] - categoryOrder[bCategory]
                 }
 
-                // Same category, prefer morning lessons
+                // Same category, prefer morning lessons for TSS
                 if (a.preferredTime !== b.preferredTime) {
                     if (a.preferredTime === 'MORNING') return -1
                     if (b.preferredTime === 'MORNING') return 1
                 }
             } else if (a.lessonType === 'TSS') {
-                // TSS has higher priority than regular subjects
                 return -1
             } else if (b.lessonType === 'TSS') {
                 return 1
             }
 
-            // For regular subjects, prioritize Mathematics and Physics
+            // For regular subjects, prioritize Mathematics and Physics (high-load subjects)
             const isMathPhysicsA = a.subjectName?.toLowerCase().includes('mathematics') || a.subjectName?.toLowerCase().includes('physics')
             const isMathPhysicsB = b.subjectName?.toLowerCase().includes('mathematics') || b.subjectName?.toLowerCase().includes('physics')
 
@@ -449,9 +519,15 @@ export class TimetableGenerator {
     }
 
     private async scheduleLesson(lesson: PreparedLesson) {
-        const { periodsPerWeek = 2, blockSize = 2 } = lesson
-
-        console.log(`🎯 STARTING LESSON SCHEDULING: Enforcing STRICT 08:00-16:50 time window (P1-P10 only)`)
+        const { periodsPerWeek = 2 } = lesson
+        
+        // CRITICAL: Skip lessons with zero periods per week
+        if (!periodsPerWeek || periodsPerWeek <= 0) {
+            console.warn(`⚠️ Skipping lesson ${lesson.subjectId || lesson.moduleId} - invalid periodsPerWeek: ${periodsPerWeek}`)
+            return
+        }
+        
+        console.log(`🎯 STARTING LESSON SCHEDULING: ${lesson.subjectId || lesson.moduleId} - ${periodsPerWeek} periods/week`)
 
         const timeSlots = await db.timeSlot.findMany({
             where: {
@@ -464,271 +540,279 @@ export class TimetableGenerator {
             ]
         })
 
-        console.log(`📊 TOTAL TIME SLOTS LOADED: ${timeSlots.length} slots for school ${this.schoolId}`)
-
-        // Get teacher availability constraints and current workload
-        const teacherConstraints = await this.getTeacherConstraints(lesson.teacherId)
-        const teacherWorkload = await this.getTeacherWorkload(lesson.teacherId)
-
-        // Determine morning preference for TSS modules
-        const isTSSModule = lesson.lessonType === 'TSS'
-        const prefersMorning = isTSSModule
-
-        // CRITICAL: Get teacher's ALL assignments across school for scope validation
-        const teacherAllAssignments = await this.getTeacherAllAssignments(lesson.teacherId)
-        const teacherClasses = new Set(teacherAllAssignments.map(a => a.classId))
-        const teacherSubjects = new Set([
-            ...teacherAllAssignments.filter(a => a.subjectId).map(a => a.subjectId!),
-            ...teacherAllAssignments.filter(a => a.moduleId).map(a => a.moduleId!)
-        ])
-
-        console.log(`Scheduling ${lesson.subjectId || lesson.moduleId} - block of ${blockSize} periods (${lesson.lessonIndex}/${lesson.totalLessons})`)
-
-        // ENFORCE FLEXIBLE COMPLEMENTARY MODULES RULE
-        // Check if this is a complementary module
-        const isComplementary = lesson.lessonType === 'TSS' && lesson.moduleCategory === 'COMPLEMENTARY'
-        
-        // ENFORCE CORE TIME RULE: STRICTLY enforce 08:00-16:50 time window
-        // Only allow periods P1-P10 (08:00-16:50) and Monday-Friday only
-        // NO EXCEPTIONS - all lessons MUST be within this time frame
-        const validTimeSlots = timeSlots.filter((ts: any) => {
-            const period = ts.period
-            const day = ts.day
-            const isValidPeriod = period >= 1 && period <= 10
-            const isValidDay = day !== 'SATURDAY' && ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'].includes(day)
-            const isNotBreak = !(ts as any).isBreak
-
-            // Log invalid slots for debugging
-            if (!isValidPeriod || !isValidDay || !isNotBreak) {
-                console.log(`❌ INVALID SLOT FILTERED: ${day} P${period} - ValidPeriod: ${isValidPeriod}, ValidDay: ${isValidDay}, NotBreak: ${isNotBreak}`)
-            }
-
-            return isValidPeriod && isValidDay && isNotBreak
-        })
-
-        console.log(`✅ VALID TIME SLOTS FOUND: ${validTimeSlots.length} slots (P1-P10, Mon-Fri, no breaks)`)
-
-        // Try to find available slot with improved distribution across the week
-        // CRITICAL: Only use slots within 08:00-16:50 time window
-        // First pass: try morning slots for modules that prefer them (TSS Priority Rule)
-        let slotsToTry = prefersMorning ?
-            [...validTimeSlots.filter((ts: any) => (ts as any).session === 'MORNING'),
-             ...validTimeSlots.filter((ts: any) => (ts as any).session !== 'MORNING')] :
-            validTimeSlots
-
-        // FINAL VALIDATION: Ensure no slot outside 08:00-16:50 gets through
-        slotsToTry = slotsToTry.filter((ts: any) => {
-            const period = ts.period
-            const day = ts.day
-            const isWithinTimeWindow = period >= 1 && period <= 10 && day !== 'SATURDAY'
-            if (!isWithinTimeWindow) {
-                console.log(`🚫 SLOT FILTERED OUT: ${day} P${period} - Outside 08:00-16:50 window`)
-            }
-            return isWithinTimeWindow
-        })
+        // CRITICAL: Ensure timeSlots is an array and has data
+        if (!timeSlots || timeSlots.length === 0) {
+            console.error(`❌ No time slots found for school ${this.schoolId}`)
+            this.conflicts.push({
+                type: 'unassigned',
+                message: 'No time slots configured for this school. Please set up time slots first.'
+            })
+            return
+        }
 
         // Update cache for break checking
         this.timeSlotsCache = timeSlots
 
-        // Sort slots to distribute lessons evenly across the week
-        slotsToTry = this.sortSlotsForEvenDistribution(slotsToTry, lesson.teacherId, lesson.classId)
+        // Get teacher availability constraints
+        const teacherConstraints = await this.getTeacherConstraints(lesson.teacherId)
 
-        for (const timeSlot of slotsToTry) {
-            const ts = timeSlot as any // Cast to access new fields
-
-            const slotKey = `${timeSlot.day}-${timeSlot.period}`
-
-            // Check teacher unavailable days
-            if (teacherConstraints.unavailableDays?.includes(timeSlot.day)) continue
-
-            // Check teacher unavailable periods
-            if (teacherConstraints.unavailablePeriods?.includes(ts.period.toString())) continue
-
-            // ENFORCE DOUBLE PERIODS RULE FOR SPECIFIC AND GENERAL MODULES
-            // COMPLEMENTARY modules fill remaining free spaces
-            let canScheduleBlockSize = blockSize
-            const isSpecificOrGeneral = lesson.lessonType === 'TSS' &&
-                (lesson.moduleCategory === 'SPECIFIC' || lesson.moduleCategory === 'GENERAL')
-
-            if (isComplementary) {
-                // COMPLEMENTARY MODULES: Fill remaining free spaces - prioritize single periods to avoid conflicts
-                // Try single periods first (to avoid conflicts), use double periods only if available
-                if (this.canScheduleBlock(lesson.teacherId, lesson.classId, timeSlot.day, timeSlot.period, 1)) {
-                    canScheduleBlockSize = 1 // Prefer single periods to avoid conflicts
-                } else if (this.canScheduleBlock(lesson.teacherId, lesson.classId, timeSlot.day, timeSlot.period, 2)) {
-                    canScheduleBlockSize = 2 // Use double periods only if single not available
-                } else {
-                    continue // No available slot at all
-                }
-            } else if (isSpecificOrGeneral) {
-                // SPECIFIC AND GENERAL MODULES: Use the prepared block size, with flexibility for odd periods
-                const periodsPerWeek = lesson.periodsPerWeek || 2
-                const blockSize = lesson.blockSize || 2
-                const isOddPeriods = periodsPerWeek % 2 === 1
-
-                // Try the exact block size first
-                if (this.canScheduleBlock(lesson.teacherId, lesson.classId, timeSlot.day, timeSlot.period, blockSize)) {
-                    canScheduleBlockSize = blockSize
-                } else if (blockSize === 2) {
-                    // If 2 not available, try 1 period
-                    if (this.canScheduleBlock(lesson.teacherId, lesson.classId, timeSlot.day, timeSlot.period, 1)) {
-                        canScheduleBlockSize = 1
-                    } else {
-                        continue // No available slot
-                    }
-                } else {
-                    // blockSize === 1 and not available
-                    continue
-                }
-            } else {
-                // Other modules (regular subjects): use configured block size
-                if (!this.canScheduleBlock(lesson.teacherId, lesson.classId, timeSlot.day, timeSlot.period, blockSize)) {
-                    continue
-                }
-            }
-
-            // CRITICAL: Check global teacher availability (respects ALL existing timetables across school)
-            const teacherAvailable = !this.teacherAvailability[lesson.teacherId]?.has(slotKey)
-
-            // Check class availability
-            const classAvailable = !this.classAvailability[lesson.classId]?.has(slotKey)
-
-            // Check max consecutive periods rule for this teacher
-            const respectsConsecutiveRule = this.canScheduleConsecutive(lesson.teacherId, timeSlot.day, timeSlot.period, 1)
-
-            // Enhanced scope validation: Check if teacher would be over-scheduled across all their classes
-            const respectsWorkloadBalance = this.isWorkloadBalanced(lesson.teacherId, lesson.classId, timeSlot.day)
-
-            if (teacherAvailable && classAvailable && respectsConsecutiveRule && respectsWorkloadBalance) {
-                // Schedule the block of consecutive periods
-                for (let i = 0; i < canScheduleBlockSize; i++) {
-                    const currentPeriod = timeSlot.period + i
-                    const currentSlotKey = `${timeSlot.day}-${currentPeriod}`
-
-                    // Get the timeSlotId for this period (assuming periods are consecutive)
-                    const currentTimeSlot = timeSlots.find((ts: any) => ts.day === timeSlot.day && ts.period === currentPeriod)
-                    if (!currentTimeSlot) continue
-
-                    this.scheduledLessons.push({
-                        teacherId: lesson.teacherId,
-                        subjectId: lesson.subjectId,
-                        moduleId: lesson.moduleId,
-                        classId: lesson.classId,
-                        slot: {
-                            day: timeSlot.day,
-                            period: currentPeriod,
-                            timeSlotId: currentTimeSlot.id
-                        },
-                        priority: lesson.priority
-                    })
-
-                    // Mark as occupied in both teacher and class availability
-                    this.teacherAvailability[lesson.teacherId].add(currentSlotKey)
-                    this.classAvailability[lesson.classId].add(currentSlotKey)
-                }
-
-                const blockDescription = isComplementary && canScheduleBlockSize === 1
-                    ? `CONFLICT-AVOID: 1 period`
-                    : `${canScheduleBlockSize} periods`
-                
-                console.log(`✅ Scheduled ${blockDescription} for ${lesson.subjectId || lesson.moduleId} at ${slotKey}`)
-                return
-            }
-        }
-
-        // No available slot found - flag unresolved conflict
-        const teacherName = lesson.teacherName || await this.getTeacherName(lesson.teacherId)
-        const className = lesson.className || await this.getClassName(lesson.classId)
-        const subjectName = lesson.subjectName || lesson.moduleName ||
-            (lesson.subjectId ? await this.getSubjectName(lesson.subjectId!) : (lesson.moduleId ? await this.getModuleName(lesson.moduleId!) : 'Unknown'))
-
-        // Enhanced conflict analysis
-        const isGlobalConflict = this.isTeacherOverbooked(lesson.teacherId)
-        const hasMultipleClasses = teacherClasses.size > 1
-        const hasMultipleSubjects = teacherSubjects.size > 1
-        const scopeConflict = hasMultipleClasses || hasMultipleSubjects
-        const isSpecificOrGeneral = lesson.lessonType === 'TSS' &&
-            (lesson.moduleCategory === 'SPECIFIC' || lesson.moduleCategory === 'GENERAL')
-
-        let conflictDetail = ''
-        if (scopeConflict) {
-            const details: string[] = []
-            if (hasMultipleClasses) details.push(`${teacherClasses.size} classes`)
-            if (hasMultipleSubjects) details.push(`${teacherSubjects.size} subjects/modules`)
-            conflictDetail = ` - Teacher scope: ${details.join(', ')}`
-        }
-
-        // ENFORCE DOUBLE PERIODS RULE: Different messaging based on module type
-        let conflictMessage: string
-        let conflictSuggestions: string[]
-
-        if (isSpecificOrGeneral) {
-            // SPECIFIC AND GENERAL MODULES: Consecutive periods based on periods per week
-            const isOddPeriods = (lesson.periodsPerWeek || 2) % 2 === 1
-            if (isOddPeriods) {
-                // For odd periods per week: min 2, max 3 consecutive periods
-                conflictMessage = `Could not schedule ${subjectName} (REQUIRES 2 or 3 consecutive periods - SPECIFIC/GENERAL module with odd periods per week) for ${teacherName} in ${className}${conflictDetail}`
-                conflictSuggestions = [
-                    'CRITICAL: SPECIFIC and GENERAL modules with odd periods per week MUST have 2 or 3 consecutive periods',
-                    'Tried 2 periods first, then 3 periods',
-                    'Add more consecutive free slots in P1-P10 range (2 or 3 consecutive periods)',
-                    'Ensure no breaks interrupt the required consecutive period blocks',
-                    'Check teacher availability for consecutive morning slots',
-                    'Reduce teacher workload to free up consecutive periods',
-                    'Consider rescheduling other lessons to create 2-3 period blocks',
-                    ...(scopeConflict ? [`Teacher teaches across ${teacherClasses.size} classes and ${teacherSubjects.size} subjects/modules - may need workload redistribution`] : []),
-                    'SOLUTION: Ensure at least 2 or 3 consecutive free periods exist in teacher/class schedule'
-                ]
-            } else {
-                // For even periods per week: 2 consecutive periods
-                conflictMessage = `Could not schedule ${subjectName} (REQUIRES 2 consecutive periods - SPECIFIC/GENERAL module) for ${teacherName} in ${className}${conflictDetail}`
-                conflictSuggestions = [
-                    'CRITICAL: SPECIFIC and GENERAL modules MUST have 2 consecutive periods',
-                    'Add more consecutive free slots in P1-P10 range',
-                    'Ensure no breaks interrupt the required 2-period blocks',
-                    'Check teacher availability for consecutive morning slots',
-                    'Reduce teacher workload to free up consecutive periods',
-                    'Consider rescheduling other lessons to create 2-period blocks',
-                    ...(scopeConflict ? [`Teacher teaches across ${teacherClasses.size} classes and ${teacherSubjects.size} subjects/modules - may need workload redistribution`] : []),
-                    'SOLUTION: Ensure at least 2 consecutive free periods exist in teacher/class schedule'
-                ]
-            }
-        } else if (isComplementary) {
-            // COMPLEMENTARY MODULES: Fill remaining free spaces - prioritize single periods
-            conflictMessage = `Could not schedule ${subjectName} (tried 1 period preferred to avoid conflicts, then 2 periods) for ${teacherName} in ${className}${conflictDetail}`
-            conflictSuggestions = [
-                'COMPLEMENTARY MODULE: Fills remaining free spaces - prioritizes single periods to avoid conflicts',
-                'Add more free time slots anywhere in P1-P10',
-                'These modules are flexible and fill gaps in the schedule',
-                'Reduce teacher workload to create more free slots',
-                'Check for any remaining unscheduled periods',
-                ...(scopeConflict ? [`Teacher has broad scope - complementary modules fill remaining slots`] : []),
-                'NOTE: Complementary modules prioritize single periods to avoid scheduling conflicts'
-            ]
-        } else {
-            // Regular subjects: Use configured block size
-            conflictMessage = `Could not schedule ${subjectName} block (${blockSize} consecutive periods required) for ${teacherName} in ${className}${conflictDetail}`
-            conflictSuggestions = [
-                'Add more consecutive time slots to the schedule',
-                'Ensure no breaks interrupt the required consecutive periods',
-                'Reduce teacher workload or redistribute assignments',
-                'Check teacher availability constraints across all classes',
-                'Consider manual scheduling for this specific lesson',
-                ...(scopeConflict ? [`Teacher teaches across ${teacherClasses.size} classes and ${teacherSubjects.size} subjects/modules - consider workload redistribution`] : []),
-                `CRITICAL: ${subjectName} requires ${blockSize} CONSECUTIVE periods without breaks`
-            ]
-        }
-
-        this.conflicts.push({
-            type: 'unassigned',
-            message: conflictMessage,
-            suggestions: conflictSuggestions.filter(Boolean) as string[]
+        // CRITICAL: Get ALL available time slots for force-placement
+        const allValidTimeSlots = timeSlots.filter((ts: any) => {
+            const period = ts.period
+            const day = ts.day
+            const isValidPeriod = period >= 1 && period <= 13
+            const isValidDay = day !== 'SATURDAY' && ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'].includes(day)
+            const isNotBreak = !(ts as any).isBreak
+            
+            // Filter out CPD periods for applicable levels
+            const isSecondarySchool = lesson.level?.startsWith('S')
+            const isUpperPrimary = lesson.level?.startsWith('P') && 
+                                   (lesson.level >= 'P4' && lesson.level <= 'P6')
+            const isCPDApplicable = isSecondarySchool || isUpperPrimary
+            const isCPDPeriod = (ts as any).isCPD === true
+            
+            if (isCPDApplicable && isCPDPeriod) return false
+            
+            return isValidPeriod && isValidDay && isNotBreak
         })
 
-        console.log(`❌ Failed to schedule ${subjectName} block for teacher ${lesson.teacherId} in class ${lesson.classId}`)
+        console.log(`📊 VALID TIME SLOTS: ${allValidTimeSlots.length} slots available`)
+
+        // Ensure availability maps exist
+        if (!this.teacherAvailability[lesson.teacherId]) {
+            this.teacherAvailability[lesson.teacherId] = new Set()
+        }
+        if (!this.classAvailability[lesson.classId]) {
+            this.classAvailability[lesson.classId] = new Set()
+        }
+
+        // ============================================================
+        // ALGORITHM: For each subject in a class:
+        //   IF subject.periods >= 2:
+        //     TRY schedule max 2 consecutive periods
+        //     IF not possible:
+        //       schedule as single periods in available free slots
+        //   ELSE:
+        //     schedule single periods anywhere free
+        // ============================================================
+
+        const maxConsecutive = 2
+        let periodsScheduled = 0
+
+        while (periodsScheduled < periodsPerWeek) {
+            const remainingPeriods = periodsPerWeek - periodsScheduled
+            
+            // Determine block size for this iteration
+            // If we have 2+ periods remaining, try 2 consecutive
+            // Otherwise, schedule as single
+            const useConsecutive = remainingPeriods >= 2
+            const blockSize = useConsecutive ? 2 : 1
+
+            console.log(`🔄 Scheduling block of ${blockSize} period(s) (${periodsScheduled + 1}/${periodsPerWeek})`)
+
+            // Try to schedule this block
+            const scheduled = this.tryScheduleBlock(lesson, allValidTimeSlots, teacherConstraints, blockSize)
+            
+            if (scheduled) {
+                periodsScheduled += blockSize
+                console.log(`✅ Scheduled ${blockSize} period(s), total: ${periodsScheduled}/${periodsPerWeek}`)
+            } else {
+                // If consecutive failed and we were trying consecutive, try single
+                if (useConsecutive) {
+                    console.log(`⚠️ Consecutive failed, trying single period...`)
+                    const singleScheduled = this.tryScheduleBlock(lesson, allValidTimeSlots, teacherConstraints, 1)
+                    
+                    if (singleScheduled) {
+                        periodsScheduled += 1
+                        console.log(`✅ Scheduled single period, total: ${periodsScheduled}/${periodsPerWeek}`)
+                    } else {
+                        // No slots available at all for this iteration
+                        console.log(`❌ No slots available for ${lesson.subjectName || lesson.moduleName}`)
+                        
+                        // Try force placement in any available slot
+                        const forcePlaced = this.tryForcePlace(lesson, allValidTimeSlots, teacherConstraints)
+                        
+                        if (forcePlaced) {
+                            periodsScheduled += 1
+                            console.log(`🚨 Force-placed single period, total: ${periodsScheduled}/${periodsPerWeek}`)
+                        } else {
+                            // Critical failure - no slots at all
+                            const teacherName = lesson.teacherName || await this.getTeacherName(lesson.teacherId)
+                            const className = lesson.className || await this.getClassName(lesson.classId)
+                            
+                            this.conflicts.push({
+                                type: 'unassigned',
+                                message: `CRITICAL: No slots available for ${lesson.subjectName || lesson.moduleName} for ${teacherName} in ${className}`
+                            })
+                            console.error(`❌ CRITICAL: Could not schedule ${lesson.subjectId || lesson.moduleId} - no slots available`)
+                            return
+                        }
+                    }
+                } else {
+                    // Single period failed - try force placement
+                    const forcePlaced = this.tryForcePlace(lesson, allValidTimeSlots, teacherConstraints)
+                    
+                    if (forcePlaced) {
+                        periodsScheduled += 1
+                        console.log(`🚨 Force-placed single period, total: ${periodsScheduled}/${periodsPerWeek}`)
+                    } else {
+                        const teacherName = lesson.teacherName || await this.getTeacherName(lesson.teacherId)
+                        const className = lesson.className || await this.getClassName(lesson.classId)
+                        
+                        this.conflicts.push({
+                            type: 'unassigned',
+                            message: `CRITICAL: No slots available for ${lesson.subjectName || lesson.moduleName} for ${teacherName} in ${className}`
+                        })
+                        console.error(`❌ CRITICAL: Could not schedule ${lesson.subjectId || lesson.moduleId} - no slots available`)
+                        return
+                    }
+                }
+            }
+        }
+
+        console.log(`✅ COMPLETED: ${periodsPerWeek} periods scheduled for ${lesson.subjectId || lesson.moduleId}`)
     }
 
-    private sortSlotsForEvenDistribution(slots: any[], teacherId: string, classId: string): any[] {
+    /**
+     * Try to schedule a block of consecutive periods
+     * Returns true if successful
+     */
+    private tryScheduleBlock(
+        lesson: PreparedLesson,
+        validTimeSlots: any[],
+        teacherConstraints: any,
+        blockSize: number
+    ): boolean {
+        // Sort slots for even distribution
+        const slotsToTry = this.sortSlotsForEvenDistribution(
+            [...validTimeSlots], 
+            lesson.teacherId, 
+            lesson.classId, 
+            (lesson.periodsPerWeek || 0) >= 5
+        )
+
+        for (const timeSlot of slotsToTry) {
+            const slotKey = `${timeSlot.day}-${timeSlot.period}`
+
+            // Check teacher constraints
+            if (teacherConstraints.unavailableDays?.includes(timeSlot.day)) continue
+            if (teacherConstraints.unavailablePeriods?.includes(timeSlot.period.toString())) continue
+
+            // Check if block fits within P1-P10
+            const endPeriod = timeSlot.period + blockSize - 1
+            if (endPeriod > 10) {
+                continue // Cannot schedule beyond P10
+            }
+
+            // Check if block can be scheduled (teacher and class available)
+            if (!this.canScheduleBlock(lesson.teacherId, lesson.classId, timeSlot.day, timeSlot.period, blockSize)) {
+                continue
+            }
+
+            // Check availability
+            const teacherAvailable = !this.teacherAvailability[lesson.teacherId].has(slotKey)
+            const classAvailable = !this.classAvailability[lesson.classId].has(slotKey)
+
+            if (!teacherAvailable || !classAvailable) continue
+
+            // Check consecutive limit (max 2)
+            if (!this.canScheduleConsecutive(lesson.teacherId, timeSlot.day, timeSlot.period, 2)) continue
+
+            // Schedule the block
+            this.scheduleBlock(lesson, timeSlot, blockSize)
+            return true
+        }
+
+        return false
+    }
+
+    /**
+     * LAST RESORT: Force-place a lesson in ANY available slot
+     * Ignores all soft rules - only respects hard constraints (teacher/class availability)
+     */
+    private tryForcePlace(lesson: PreparedLesson, validTimeSlots: any[], teacherConstraints: any): boolean {
+        // Sort by availability (prefer slots with fewer conflicts)
+        const slotsByPriority = this.sortSlotsByAvailability([...validTimeSlots], lesson.teacherId, lesson.classId)
+
+        for (const timeSlot of slotsByPriority) {
+            const slotKey = `${timeSlot.day}-${timeSlot.period}`
+
+            // ONLY check hard constraints: teacher and class availability
+            const teacherAvailable = !this.teacherAvailability[lesson.teacherId].has(slotKey)
+            const classAvailable = !this.classAvailability[lesson.classId].has(slotKey)
+
+            if (teacherAvailable && classAvailable) {
+                // Force place as single period
+                this.scheduleBlock(lesson, timeSlot, 1)
+                return true
+            }
+        }
+
+        return false
+    }
+
+    /**
+     * Sort slots by availability (slots with fewer conflicts first)
+     */
+    private sortSlotsByAvailability(slots: any[], teacherId: string, classId: string): any[] {
+        return slots.sort((a, b) => {
+            const aKey = `${a.day}-${a.period}`
+            const bKey = `${b.day}-${b.period}`
+            
+            const aTeacherBusy = this.teacherAvailability[teacherId]?.has(aKey) ? 1 : 0
+            const aClassBusy = this.classAvailability[classId]?.has(aKey) ? 1 : 0
+            const bTeacherBusy = this.teacherAvailability[teacherId]?.has(bKey) ? 1 : 0
+            const bClassBusy = this.classAvailability[classId]?.has(bKey) ? 1 : 0
+
+            const aScore = aTeacherBusy + aClassBusy
+            const bScore = bTeacherBusy + bClassBusy
+
+            if (aScore !== bScore) return aScore - bScore
+            
+            // Tie-breaker: prefer morning, then earlier periods
+            if (a.session !== b.session) {
+                return a.session === 'MORNING' ? -1 : 1
+            }
+            return a.period - b.period
+        })
+    }
+
+    /**
+     * Schedule a block of periods for a lesson
+     */
+    private scheduleBlock(lesson: PreparedLesson, timeSlot: any, blockSize: number) {
+        for (let i = 0; i < blockSize; i++) {
+            const currentPeriod = timeSlot.period + i
+            const currentSlotKey = `${timeSlot.day}-${currentPeriod}`
+
+            const currentTimeSlot = this.timeSlotsCache?.find((ts: any) => ts.day === timeSlot.day && ts.period === currentPeriod)
+            
+            if (!currentTimeSlot || (currentTimeSlot as any).isBreak) {
+                console.warn(`⚠️ Skipping period ${currentPeriod} on ${timeSlot.day} - invalid slot or break`)
+                continue
+            }
+
+            this.scheduledLessons.push({
+                teacherId: lesson.teacherId,
+                subjectId: lesson.subjectId,
+                moduleId: lesson.moduleId,
+                classId: lesson.classId,
+                slot: {
+                    day: timeSlot.day,
+                    period: currentPeriod,
+                    timeSlotId: currentTimeSlot.id
+                },
+                priority: lesson.priority
+            })
+
+            this.teacherAvailability[lesson.teacherId].add(currentSlotKey)
+            this.classAvailability[lesson.classId].add(currentSlotKey)
+        }
+
+        console.log(`✅ Scheduled ${blockSize} period(s) for ${lesson.subjectId || lesson.moduleId} at ${timeSlot.day}-${timeSlot.period}`)
+    }
+
+    private sortSlotsForEvenDistribution(slots: any[], teacherId: string, classId: string, isHighPeriodSubject: boolean = false): any[] {
         // Count current lessons per day for this teacher and class
         const teacherLessonsByDay = new Map<string, number>()
         const classLessonsByDay = new Map<string, number>()
@@ -754,6 +838,28 @@ export class TimetableGenerator {
             const teacherScoreB = teacherLessonsByDay.get(b.day) || 0
             const classScoreB = classLessonsByDay.get(b.day) || 0
             const totalScoreB = teacherScoreB + classScoreB
+
+            // ENHANCED: For high-period subjects, prioritize spreading across DIFFERENT days
+            if (isHighPeriodSubject && totalScoreA === totalScoreB) {
+                // If same score, prefer different days for high-period subjects
+                // This helps distribute the subject across the week
+                if (a.day !== b.day) {
+                    // Prefer days with fewer periods already scheduled for this subject
+                    const subjectLessonsOnA = this.scheduledLessons.filter(
+                        l => l.classId === classId && 
+                             (l.subjectId === a.subjectId || l.moduleId === a.moduleId) &&
+                             l.slot.day === a.day
+                    ).length
+                    
+                    const subjectLessonsOnB = this.scheduledLessons.filter(
+                        l => l.classId === classId && 
+                             (l.subjectId === b.subjectId || l.moduleId === b.moduleId) &&
+                             l.slot.day === b.day
+                    ).length
+                    
+                    return subjectLessonsOnA - subjectLessonsOnB
+                }
+            }
 
             // If scores are equal, maintain original order (by period)
             if (totalScoreA === totalScoreB) {
@@ -823,6 +929,60 @@ export class TimetableGenerator {
         const consecutiveAfter = this.getConsecutiveCount(teacherSlots, period + 1)
 
         return (consecutiveBefore < maxConsecutive) && (consecutiveAfter < maxConsecutive)
+    }
+
+    /**
+     * ENFORCE MAXIMUM CONSECUTIVE PERIODS RULE FOR SAME SUBJECT
+     * 
+     * RULE: Max 2 consecutive periods for the same subject
+     * - If placing 2 consecutive periods causes a conflict, reduce to 1
+     * - Never allow more than 2 consecutive periods for same subject
+     */
+    private canScheduleMaxConsecutivePeriods(
+        teacherId: string, 
+        classId: string, 
+        day: string, 
+        period: number, 
+        subjectId: string | undefined,
+        maxConsecutive: number = 2
+    ): boolean {
+        // Get all scheduled lessons for this teacher on this day
+        const teacherLessonsOnDay = this.scheduledLessons.filter(
+            lesson => lesson.teacherId === teacherId && lesson.slot.day === day
+        )
+        
+        // Count consecutive periods for the SAME subject
+        let consecutiveCount = 0
+        
+        // Check periods before
+        let checkPeriod = period - 1
+        while (checkPeriod >= 1) {
+            const slotKey = `${day}-${checkPeriod}`
+            const isOccupied = this.teacherAvailability[teacherId]?.has(slotKey) || 
+                             this.classAvailability[classId]?.has(slotKey)
+            
+            if (isOccupied) {
+                // Check if this is the same subject
+                const lessonAtPeriod = teacherLessonsOnDay.find(
+                    l => l.slot.period === checkPeriod &&
+                         (l.subjectId === subjectId || l.moduleId === subjectId)
+                )
+                if (lessonAtPeriod) {
+                    consecutiveCount++
+                    checkPeriod--
+                } else {
+                    break
+                }
+            } else {
+                break
+            }
+        }
+        
+        // Check periods after (but only for this specific block, not future periods)
+        // The actual scheduling will handle the future periods
+        
+        // Return true if we haven't exceeded max consecutive
+        return consecutiveCount < maxConsecutive
     }
 
     private getConsecutiveCount(slots: number[], period: number): number {
@@ -1022,23 +1182,40 @@ export class TimetableGenerator {
 
     private async saveToDatabase() {
         for (const lesson of this.scheduledLessons) {
-            await db.timetable.create({
-                data: {
-                    schoolId: this.schoolId,
-                    classId: lesson.classId,
-                    teacherId: lesson.teacherId,
-                    subjectId: lesson.subjectId,
-                    moduleId: lesson.moduleId,
-                    timeSlotId: lesson.slot.timeSlotId
-                }
-            })
+            // CRITICAL: Skip lessons with invalid or missing timeSlotId
+            if (!lesson.slot.timeSlotId) {
+                console.warn(`⚠️ Skipping save for lesson - missing timeSlotId:`, lesson)
+                continue
+            }
+            
+            // CRITICAL: Skip lessons with invalid classId or teacherId
+            if (!lesson.classId || !lesson.teacherId) {
+                console.warn(`⚠️ Skipping save for lesson - missing classId or teacherId:`, lesson)
+                continue
+            }
+            
+            try {
+                await db.timetable.create({
+                    data: {
+                        schoolId: this.schoolId,
+                        classId: lesson.classId,
+                        teacherId: lesson.teacherId,
+                        subjectId: lesson.subjectId,
+                        moduleId: lesson.moduleId,
+                        timeSlotId: lesson.slot.timeSlotId
+                    }
+                })
+            } catch (error) {
+                console.error(`❌ Failed to save timetable entry for lesson:`, lesson, error)
+                // Don't throw - continue with other lessons
+            }
         }
     }
 
     /**
      * Generate timetables for all classes (without clearing existing teacher timetables)
      */
-    async generateForAllClasses(): Promise<{ success: boolean; conflicts: ConflictResolution[] }> {
+    async generateForAllClasses(): Promise<{ success: boolean; conflicts: ConflictResolution[]; warnings: ConflictResolution[] }> {
         try {
             // Clear existing timetables for classes only (keep teacher-specific ones)
             await db.timetable.deleteMany({
@@ -1064,7 +1241,8 @@ export class TimetableGenerator {
 
             return {
                 success: true,
-                conflicts: this.conflicts
+                conflicts: this.conflicts,
+                warnings: this.warnings
             }
         } catch (error) {
             console.error('Timetable generation for all classes failed:', error)
@@ -1073,7 +1251,8 @@ export class TimetableGenerator {
                 conflicts: [...this.conflicts, {
                     type: 'unassigned',
                     message: 'Timetable generation for all classes failed due to an internal error'
-                }]
+                }],
+                warnings: this.warnings
             }
         }
     }
@@ -1081,7 +1260,7 @@ export class TimetableGenerator {
     /**
      * Generate timetables for all teachers (without clearing existing class timetables)
      */
-    async generateForAllTeachers(): Promise<{ success: boolean; conflicts: ConflictResolution[] }> {
+    async generateForAllTeachers(): Promise<{ success: boolean; conflicts: ConflictResolution[]; warnings: ConflictResolution[] }> {
         try {
             // Clear existing timetables for teachers only (but this also clears class timetables since they're linked)
             // Actually, timetables are shared - a single timetable entry has both classId and teacherId
@@ -1109,7 +1288,8 @@ export class TimetableGenerator {
 
             return {
                 success: true,
-                conflicts: this.conflicts
+                conflicts: this.conflicts,
+                warnings: this.warnings
             }
         } catch (error) {
             console.error('Timetable generation for all teachers failed:', error)
@@ -1118,9 +1298,172 @@ export class TimetableGenerator {
                 conflicts: [...this.conflicts, {
                     type: 'unassigned',
                     message: 'Timetable generation for all teachers failed due to an internal error'
-                }]
+                }],
+                warnings: this.warnings
             }
         }
+    }
+
+    /**
+     * Schedule CPD (Continuous Professional Development) for upper primary classes (S1-S6)
+     * CPD is scheduled at 15:30-16:50 (P13) for all weekdays
+     */
+    private async scheduleCPDForUpperPrimary(): Promise<void> {
+        try {
+            // Get all upper primary classes (S1-S6)
+            const upperPrimaryClasses = await db.class.findMany({
+                where: {
+                    schoolId: this.schoolId,
+                    level: { in: UPPER_PRIMARY_LEVELS }
+                }
+            })
+
+            if (upperPrimaryClasses.length === 0) {
+                console.log('No upper primary classes found for CPD scheduling')
+                return
+            }
+
+            console.log(`Scheduling CPD for ${upperPrimaryClasses.length} upper primary classes: ${upperPrimaryClasses.map(c => c.name).join(', ')}`)
+
+            // Find or get CPD subject
+            let cpdSubject = await db.subject.findFirst({
+                where: {
+                    schoolId: this.schoolId,
+                    name: 'CPD'
+                }
+            })
+
+            // If CPD subject doesn't exist, we'll use a placeholder
+            const cpdSubjectId = cpdSubject?.id || 'CPD_PLACEHOLDER'
+
+            // Get time slots for CPD (15:30-16:50)
+            const cpdTimeSlots = await db.timeSlot.findMany({
+                where: {
+                    schoolId: this.schoolId,
+                    day: { in: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'] },
+                    startTime: '15:30',
+                    isActive: true
+                }
+            })
+
+            if (cpdTimeSlots.length === 0) {
+                console.warn('No CPD time slots found (15:30-16:50). CPD will not be scheduled.')
+                this.conflicts.push({
+                    type: 'unassigned',
+                    message: 'CPD time slots not configured. Please add time slots for 15:30-16:50.'
+                })
+                return
+            }
+
+            // For each upper primary class, schedule CPD for each weekday
+            for (const classData of upperPrimaryClasses) {
+                for (const timeSlot of cpdTimeSlots) {
+                    const slotKey = `${timeSlot.day}-${timeSlot.period}`
+
+                    // Check if class is already scheduled at this slot
+                    if (this.classAvailability[classData.id]?.has(slotKey)) {
+                        console.log(`Class ${classData.name} already has a lesson at ${timeSlot.day} P${timeSlot.period} - CPD not scheduled`)
+                        continue
+                    }
+
+                    // Find a teacher for CPD (use school admin or any available teacher)
+                    // For CPD, we can use a placeholder teacher
+                    const cpdTeacher = await this.findAvailableTeacherForCPD(classData.id, timeSlot.day, timeSlot.period)
+
+                    if (!cpdTeacher) {
+                        console.warn(`No available teacher for CPD on ${timeSlot.day} for class ${classData.name}`)
+                        continue
+                    }
+
+                    // Add to scheduled lessons
+                    this.scheduledLessons.push({
+                        teacherId: cpdTeacher,
+                        subjectId: cpdSubjectId,
+                        classId: classData.id,
+                        slot: {
+                            day: timeSlot.day,
+                            period: timeSlot.period,
+                            timeSlotId: timeSlot.id
+                        },
+                        priority: 0 // Low priority for CPD
+                    })
+
+                    // Mark class as unavailable
+                    if (!this.classAvailability[classData.id]) {
+                        this.classAvailability[classData.id] = new Set()
+                    }
+                    this.classAvailability[classData.id].add(slotKey)
+
+                    // Mark teacher as unavailable
+                    if (!this.teacherAvailability[cpdTeacher]) {
+                        this.teacherAvailability[cpdTeacher] = new Set()
+                    }
+                    this.teacherAvailability[cpdTeacher].add(slotKey)
+
+                    console.log(`✓ CPD scheduled for ${classData.name} on ${timeSlot.day} (15:30-16:50) with teacher ${cpdTeacher}`)
+                }
+            }
+
+            console.log(`CPD scheduling complete for ${upperPrimaryClasses.length} upper primary classes`)
+        } catch (error) {
+            console.error('Error scheduling CPD:', error)
+            this.conflicts.push({
+                type: 'unassigned',
+                message: `CPD scheduling failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+            })
+        }
+    }
+
+    /**
+     * Find an available teacher for CPD
+     */
+    private async findAvailableTeacherForCPD(classId: string, day: string, period: number): Promise<string | null> {
+        // First try to find a teacher who teaches this class
+        const classTeacherSubjects = await db.teacherClassSubject.findMany({
+            where: {
+                classId: classId,
+                schoolId: this.schoolId
+            },
+            include: {
+                teacher: true
+            }
+        })
+
+        const slotKey = `${day}-${period}`
+
+        // Find an available teacher from the class's teachers
+        for (const tcs of classTeacherSubjects) {
+            const teacherAvailable = !this.teacherAvailability[tcs.teacherId]?.has(slotKey)
+            const dayNotUnavailable = !tcs.teacher.unavailableDays?.includes(day)
+            const periodNotUnavailable = !tcs.teacher.unavailablePeriods?.includes(period.toString())
+
+            if (teacherAvailable && dayNotUnavailable && periodNotUnavailable) {
+                return tcs.teacherId
+            }
+        }
+
+        // If no class teacher is available, find any available teacher
+        const allTeachers = await db.user.findMany({
+            where: {
+                schoolId: this.schoolId,
+                role: 'TEACHER',
+                isActive: true
+            }
+        })
+
+        for (const teacher of allTeachers) {
+            const teacherAvailable = !this.teacherAvailability[teacher.id]?.has(slotKey)
+            const dayNotUnavailable = !teacher.unavailableDays?.includes(day)
+            const periodNotUnavailable = !teacher.unavailablePeriods?.includes(period.toString())
+
+            if (teacherAvailable && dayNotUnavailable && periodNotUnavailable) {
+                return teacher.id
+            }
+        }
+
+        // If no teacher is available, use a placeholder
+        // This ensures CPD is still scheduled even without a specific teacher
+        return 'CPD_PLACEHOLDER_TEACHER'
     }
 }
 

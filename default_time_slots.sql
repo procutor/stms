@@ -1,22 +1,23 @@
 -- Default Time Slots SQL for Monday to Friday
--- For GS GIKOMERO TSS school
+-- For Secondary schools: P9-P10 (15:30-16:50) are reserved for CPD
+-- For Primary and TSS schools: P9-P10 are regular periods
 
 -- Monday Time Slots
-INSERT INTO time_slots (id, school_id, day, period, name, start_time, end_time, session, is_break, break_type, is_active, created_at, updated_at) VALUES
-('ts-mon-1', 'school-gikomero-tss', 'MONDAY', 1, 'P1', '2024-01-01 08:00:00+00', '2024-01-01 08:40:00+00', 'MORNING', false, NULL, true, NOW(), NOW()),
-('ts-mon-2', 'school-gikomero-tss', 'MONDAY', 2, 'P2', '2024-01-01 08:40:00+00', '2024-01-01 09:20:00+00', 'MORNING', false, NULL, true, NOW(), NOW()),
-('ts-mon-3', 'school-gikomero-tss', 'MONDAY', 3, 'P3', '2024-01-01 09:20:00+00', '2024-01-01 10:00:00+00', 'MORNING', false, NULL, true, NOW(), NOW()),
-('ts-mon-break1', 'school-gikomero-tss', 'MONDAY', -1, 'MORNING BREAK', '2024-01-01 10:00:00+00', '2024-01-01 10:20:00+00', 'MORNING', true, 'MORNING_BREAK', true, NOW(), NOW()),
-('ts-mon-4', 'school-gikomero-tss', 'MONDAY', 4, 'P4', '2024-01-01 10:20:00+00', '2024-01-01 11:00:00+00', 'MORNING', false, NULL, true, NOW(), NOW()),
-('ts-mon-5', 'school-gikomero-tss', 'MONDAY', 5, 'P5', '2024-01-01 11:00:00+00', '2024-01-01 11:40:00+00', 'MORNING', false, NULL, true, NOW(), NOW()),
-('ts-mon-lunch', 'school-gikomero-tss', 'MONDAY', -2, 'LUNCH BREAK', '2024-01-01 11:40:00+00', '2024-01-01 13:10:00+00', 'AFTERNOON', true, 'LUNCH_BREAK', true, NOW(), NOW()),
-('ts-mon-6', 'school-gikomero-tss', 'MONDAY', 6, 'P6', '2024-01-01 13:10:00+00', '2024-01-01 13:50:00+00', 'AFTERNOON', false, NULL, true, NOW(), NOW()),
-('ts-mon-7', 'school-gikomero-tss', 'MONDAY', 7, 'P7', '2024-01-01 13:50:00+00', '2024-01-01 14:30:00+00', 'AFTERNOON', false, NULL, true, NOW(), NOW()),
-('ts-mon-8', 'school-gikomero-tss', 'MONDAY', 8, 'P8', '2024-01-01 14:30:00+00', '2024-01-01 15:10:00+00', 'AFTERNOON', false, NULL, true, NOW(), NOW()),
-('ts-mon-break2', 'school-gikomero-tss', 'MONDAY', -3, 'AFTERNOON BREAK', '2024-01-01 15:10:00+00', '2024-01-01 15:30:00+00', 'AFTERNOON', true, 'AFTERNOON_BREAK', true, NOW(), NOW()),
-('ts-mon-9', 'school-gikomero-tss', 'MONDAY', 9, 'P9', '2024-01-01 15:30:00+00', '2024-01-01 16:10:00+00', 'AFTERNOON', false, NULL, true, NOW(), NOW()),
-('ts-mon-10', 'school-gikomero-tss', 'MONDAY', 10, 'P10', '2024-01-01 16:10:00+00', '2024-01-01 16:50:00+00', 'AFTERNOON', false, NULL, true, NOW(), NOW()),
-('ts-mon-end', 'school-gikomero-tss', 'MONDAY', -4, 'END OF DAY', '2024-01-01 16:50:00+00', '2024-01-01 16:55:00+00', 'AFTERNOON', true, 'END_OF_DAY', true, NOW(), NOW());
+INSERT INTO time_slots (id, school_id, day, period, name, start_time, end_time, session, is_break, break_type, is_active, is_cpd, created_at, updated_at) VALUES
+('ts-mon-1', 'school-gikomero-tss', 'MONDAY', 1, 'P1', '2024-01-01 08:00:00+00', '2024-01-01 08:40:00+00', 'MORNING', false, NULL, true, false, NOW(), NOW()),
+('ts-mon-2', 'school-gikomero-tss', 'MONDAY', 2, 'P2', '2024-01-01 08:40:00+00', '2024-01-01 09:20:00+00', 'MORNING', false, NULL, true, false, NOW(), NOW()),
+('ts-mon-3', 'school-gikomero-tss', 'MONDAY', 3, 'P3', '2024-01-01 09:20:00+00', '2024-01-01 10:00:00+00', 'MORNING', false, NULL, true, false, NOW(), NOW()),
+('ts-mon-break1', 'school-gikomero-tss', 'MONDAY', -1, 'MORNING BREAK', '2024-01-01 10:00:00+00', '2024-01-01 10:20:00+00', 'MORNING', true, 'MORNING_BREAK', true, false, NOW(), NOW()),
+('ts-mon-4', 'school-gikomero-tss', 'MONDAY', 4, 'P4', '2024-01-01 10:20:00+00', '2024-01-01 11:00:00+00', 'MORNING', false, NULL, true, false, NOW(), NOW()),
+('ts-mon-5', 'school-gikomero-tss', 'MONDAY', 5, 'P5', '2024-01-01 11:00:00+00', '2024-01-01 11:40:00+00', 'MORNING', false, NULL, true, false, NOW(), NOW()),
+('ts-mon-lunch', 'school-gikomero-tss', 'MONDAY', -2, 'LUNCH BREAK', '2024-01-01 11:40:00+00', '2024-01-01 13:10:00+00', 'AFTERNOON', true, 'LUNCH_BREAK', true, false, NOW(), NOW()),
+('ts-mon-6', 'school-gikomero-tss', 'MONDAY', 6, 'P6', '2024-01-01 13:10:00+00', '2024-01-01 13:50:00+00', 'AFTERNOON', false, NULL, true, false, NOW(), NOW()),
+('ts-mon-7', 'school-gikomero-tss', 'MONDAY', 7, 'P7', '2024-01-01 13:50:00+00', '2024-01-01 14:30:00+00', 'AFTERNOON', false, NULL, true, false, NOW(), NOW()),
+('ts-mon-8', 'school-gikomero-tss', 'MONDAY', 8, 'P8', '2024-01-01 14:30:00+00', '2024-01-01 15:10:00+00', 'AFTERNOON', false, NULL, true, false, NOW(), NOW()),
+('ts-mon-break2', 'school-gikomero-tss', 'MONDAY', -3, 'AFTERNOON BREAK', '2024-01-01 15:10:00+00', '2024-01-01 15:30:00+00', 'AFTERNOON', true, 'AFTERNOON_BREAK', true, false, NOW(), NOW()),
+('ts-mon-9', 'school-gikomero-tss', 'MONDAY', 9, 'CPD', '2024-01-01 15:30:00+00', '2024-01-01 16:10:00+00', 'AFTERNOON', false, NULL, true, true, NOW(), NOW()),
+('ts-mon-10', 'school-gikomero-tss', 'MONDAY', 10, 'CPD', '2024-01-01 16:10:00+00', '2024-01-01 16:50:00+00', 'AFTERNOON', false, NULL, true, true, NOW(), NOW()),
+('ts-mon-end', 'school-gikomero-tss', 'MONDAY', -4, 'END OF DAY', '2024-01-01 16:50:00+00', '2024-01-01 16:55:00+00', 'AFTERNOON', true, 'END_OF_DAY', true, false, NOW(), NOW());
 
 -- Tuesday Time Slots
 INSERT INTO time_slots (id, school_id, day, period, name, start_time, end_time, session, is_break, break_type, is_active, created_at, updated_at) VALUES

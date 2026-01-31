@@ -105,6 +105,12 @@ export default function SchoolAdminSidebar({ className = '' }: SchoolAdminSideba
             isActive: pathname === '/dashboard/school-admin/generate-timetables'
         },
         {
+            href: '/dashboard/school-admin/timetables/primary-lower',
+            icon: Calendar,
+            label: 'Primary Lower (P1-P3)',
+            isActive: pathname === '/dashboard/school-admin/timetables/primary-lower'
+        },
+        {
             href: '/dashboard/school-admin/bulk-upload',
             icon: Upload,
             label: 'Bulk Upload',

@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -45,8 +45,13 @@ model School {
   phone      String?
   status     String    @default("PENDING") // PENDING, APPROVED, REJECTED, INACTIVE
   approvedAt DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+
+  // Double-Shift Support Fields
+  isDoubleShift     Boolean @default(false) // Whether this school operates in double-shift mode
+  doubleShiftConfig Json? // Configuration for double-shift: { morningStartTime, afternoonStartTime, breakDuration, minBreakBetweenShifts }
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   users                User[]
@@ -58,6 +63,7 @@ model School {
   teacherClassSubjects TeacherClassSubject[]
   trainerClassModules  TrainerClassModule[]
   timeSlotTemplates    TimeSlotTemplate[]
+  classrooms           Classroom[]
 
   @@map("schools")
 }
@@ -72,6 +78,11 @@ model Class {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Double-Shift Support Fields
+  // Shift assignment for double-shift schools: "MORNING" or "AFTERNOON"
+  // null for single-shift schools
+  shift String?
+
   // Relations
   subjects             ClassSubject[]
   timetables           Timetable[]
@@ -80,6 +91,26 @@ model Class {
 
   @@unique([schoolId, level, stream])
   @@map("classes")
+}
+
+// Classroom Model for double-shift support
+// Allows tracking which physical room a class uses, especially important
+// when multiple classes share the same room in different shifts
+model Classroom {
+  id        String   @id @default(cuid())
+  name      String
+  capacity  Int      @default(30)
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id])
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  timetables Timetable[]
+
+  @@unique([schoolId, name])
+  @@map("classrooms")
 }
 
 model Subject {
@@ -178,6 +209,16 @@ model TimeSlot {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // CPD Support Field
+  // For Secondary schools, P9-P10 (15:30-16:50) are reserved for CPD
+  isCPD Boolean @default(false)
+
+  // Double-Shift Support Fields
+  // Explicit shift designation for query optimization
+  // Allows distinguishing between morning P1 and afternoon P1
+  // Values: "MORNING", "AFTERNOON", or null for single-shift schools
+  shift String?
+
   // Relations
   timetables Timetable[]
 
@@ -203,6 +244,16 @@ model Timetable {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Double-Shift Support Fields
+  // Explicit shift field for query optimization
+  // Cached from class.shift to avoid joins when filtering by shift
+  shift String?
+
+  // Classroom assignment for double-shift schools
+  // Tracks which physical room is used for this class period
+  classroomId String?
+  classroom   Classroom? @relation(fields: [classroomId], references: [id])
 
   @@unique([schoolId, classId, timeSlotId])
   @@map("timetables")

@@ -49,13 +49,17 @@ export async function PUT(
             )
         }
 
-        // Update availability
+        // Update availability - convert arrays to JSON strings
         const updatedTeacher = await db.user.update({
             where: { id: params.id },
             data: {
-                unavailableDays: validatedData.unavailableDays || [],
-                unavailablePeriods: validatedData.unavailablePeriods || []
-            } as any,
+                unavailableDays: validatedData.unavailableDays 
+                    ? JSON.stringify(validatedData.unavailableDays)
+                    : null,
+                unavailablePeriods: validatedData.unavailablePeriods
+                    ? JSON.stringify(validatedData.unavailablePeriods)
+                    : null
+            },
             select: {
                 id: true,
                 name: true,

@@ -121,10 +121,19 @@ export async function POST(request: NextRequest) {
                     mode: validatedData.incremental ? 'incremental' : 'regeneration'
                 })
             } else {
+                // Check if there are any specific error messages in conflicts
+                const errorMessage = result.conflicts.length > 0 
+                    ? result.conflicts[result.conflicts.length - 1].message 
+                    : 'Timetable generation for class failed'
                 return NextResponse.json(
                     {
-                        error: 'Timetable generation for class failed',
-                        conflicts: result.conflicts
+                        error: errorMessage,
+                        conflicts: result.conflicts,
+                        debug: {
+                            classId: validatedData.classId,
+                            className: classExists.name,
+                            hasLessons: classLessons.length > 0
+                        }
                     },
                     { status: 500 }
                 )

@@ -67,14 +67,41 @@ export default function TeacherAvailabilityPage() {
             const teachersResponse = await fetch('/api/teachers')
             if (teachersResponse.ok) {
                 const teachersData = await teachersResponse.json()
-                setTeachers(teachersData)
+                // Parse JSON strings back to arrays
+                const parsedTeachers = teachersData.map((t: Teacher) => ({
+                    ...t,
+                    unavailableDays: t.unavailableDays 
+                        ? (typeof t.unavailableDays === 'string' 
+                            ? JSON.parse(t.unavailableDays) 
+                            : t.unavailableDays)
+                        : [],
+                    unavailablePeriods: t.unavailablePeriods
+                        ? (typeof t.unavailablePeriods === 'string'
+                            ? JSON.parse(t.unavailablePeriods)
+                            : t.unavailablePeriods)
+                        : []
+                }))
+                setTeachers(parsedTeachers)
             }
 
             // Also fetch trainers
             const trainersResponse = await fetch('/api/trainers')
             if (trainersResponse.ok) {
                 const trainersData = await trainersResponse.json()
-                setTeachers(prev => [...prev, ...trainersData])
+                const parsedTrainers = trainersData.map((t: Teacher) => ({
+                    ...t,
+                    unavailableDays: t.unavailableDays 
+                        ? (typeof t.unavailableDays === 'string' 
+                            ? JSON.parse(t.unavailableDays) 
+                            : t.unavailableDays)
+                        : [],
+                    unavailablePeriods: t.unavailablePeriods
+                        ? (typeof t.unavailablePeriods === 'string'
+                            ? JSON.parse(t.unavailablePeriods)
+                            : t.unavailablePeriods)
+                        : []
+                }))
+                setTeachers(prev => [...prev, ...parsedTrainers])
             }
         } catch (error) {
             console.error('Error fetching teachers:', error)
@@ -85,8 +112,21 @@ export default function TeacherAvailabilityPage() {
 
     const handleTeacherSelect = (teacher: Teacher) => {
         setSelectedTeacher(teacher)
-        setUnavailableDays(teacher.unavailableDays || [])
-        setUnavailablePeriods(teacher.unavailablePeriods || [])
+        // Parse JSON strings back to arrays
+        setUnavailableDays(
+            teacher.unavailableDays 
+                ? (typeof teacher.unavailableDays === 'string' 
+                    ? JSON.parse(teacher.unavailableDays) 
+                    : teacher.unavailableDays)
+                : []
+        )
+        setUnavailablePeriods(
+            teacher.unavailablePeriods
+                ? (typeof teacher.unavailablePeriods === 'string'
+                    ? JSON.parse(teacher.unavailablePeriods)
+                    : teacher.unavailablePeriods)
+                : []
+        )
     }
 
     const handleDayToggle = (dayId: string) => {

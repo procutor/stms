@@ -1,0 +1,2465 @@
+{
+  "metadata": {
+    "generatedAt": "2026-01-29T13:12:19.994Z",
+    "totalClasses": 9,
+    "totalTeachers": 6,
+    "totalSubjects": 8,
+    "periodsPerClass": 50,
+    "morningPeriods": 25,
+    "afternoonPeriods": 25
+  },
+  "subjects": [
+    {
+      "id": "MATH",
+      "name": "Mathematics",
+      "periodsPerWeek": 10,
+      "difficulty": 3
+    },
+    {
+      "id": "ENG",
+      "name": "English",
+      "periodsPerWeek": 8,
+      "difficulty": 2
+    },
+    {
+      "id": "KIN",
+      "name": "Kinyarwanda",
+      "periodsPerWeek": 6,
+      "difficulty": 2
+    },
+    {
+      "id": "SCI",
+      "name": "Science",
+      "periodsPerWeek": 8,
+      "difficulty": 3
+    },
+    {
+      "id": "SS",
+      "name": "Social Studies",
+      "periodsPerWeek": 6,
+      "difficulty": 1
+    },
+    {
+      "id": "PE",
+      "name": "Physical Education",
+      "periodsPerWeek": 4,
+      "difficulty": 1
+    },
+    {
+      "id": "ART",
+      "name": "Art & Craft",
+      "periodsPerWeek": 4,
+      "difficulty": 1
+    },
+    {
+      "id": "RE",
+      "name": "Religious Education",
+      "periodsPerWeek": 4,
+      "difficulty": 1
+    }
+  ],
+  "teachers": [
+    {
+      "id": "T1",
+      "name": "Mr. Jean Baptiste",
+      "subjects": [
+        "MATH",
+        "SCI"
+      ]
+    },
+    {
+      "id": "T2",
+      "name": "Mrs. Marie Claire",
+      "subjects": [
+        "ENG",
+        "ART"
+      ]
+    },
+    {
+      "id": "T3",
+      "name": "Mr. Paul Kagame",
+      "subjects": [
+        "KIN",
+        "SS"
+      ]
+    },
+    {
+      "id": "T4",
+      "name": "Ms. Sarah Williams",
+      "subjects": [
+        "MATH",
+        "PE"
+      ]
+    },
+    {
+      "id": "T5",
+      "name": "Mr. John Doe",
+      "subjects": [
+        "SCI",
+        "RE"
+      ]
+    },
+    {
+      "id": "T6",
+      "name": "Mrs. Grace Ninger",
+      "subjects": [
+        "ENG",
+        "SS"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "P1A",
+      "name": "P1 A",
+      "level": "P1"
+    },
+    {
+      "id": "P1B",
+      "name": "P1 B",
+      "level": "P1"
+    },
+    {
+      "id": "P1C",
+      "name": "P1 C",
+      "level": "P1"
+    },
+    {
+      "id": "P2A",
+      "name": "P2 A",
+      "level": "P2"
+    },
+    {
+      "id": "P2B",
+      "name": "P2 B",
+      "level": "P2"
+    },
+    {
+      "id": "P2C",
+      "name": "P2 C",
+      "level": "P2"
+    },
+    {
+      "id": "P3A",
+      "name": "P3 A",
+      "level": "P3"
+    },
+    {
+      "id": "P3B",
+      "name": "P3 B",
+      "level": "P3"
+    },
+    {
+      "id": "P3C",
+      "name": "P3 C",
+      "level": "P3"
+    }
+  ],
+  "timetables": {
+    "P1A": {
+      "classId": "P1A",
+      "className": "P1 A",
+      "morningCount": 25,
+      "afternoonCount": 25,
+      "totalPeriods": 50,
+      "lessons": [
+        {
+          "day": "MONDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "MONDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "MONDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "MONDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "MONDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "MONDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "MONDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "MONDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "MONDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "MONDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        }
+      ]
+    },
+    "P1B": {
+      "classId": "P1B",
+      "className": "P1 B",
+      "morningCount": 22,
+      "afternoonCount": 25,
+      "totalPeriods": 47,
+      "lessons": [
+        {
+          "day": "MONDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "MONDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "MONDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "MONDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "MONDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "MONDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "MONDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "MONDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "MONDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "MONDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        }
+      ]
+    },
+    "P1C": {
+      "classId": "P1C",
+      "className": "P1 C",
+      "morningCount": 25,
+      "afternoonCount": 20,
+      "totalPeriods": 45,
+      "lessons": [
+        {
+          "day": "MONDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "MONDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "MONDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "MONDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "MONDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "MONDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "MONDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "MONDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "MONDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "MONDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "MATH",
+          "subjectName": "Mathematics",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        }
+      ]
+    },
+    "P2A": {
+      "classId": "P2A",
+      "className": "P2 A",
+      "morningCount": 16,
+      "afternoonCount": 15,
+      "totalPeriods": 31,
+      "lessons": [
+        {
+          "day": "MONDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "MONDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "MONDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "MONDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "MONDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "MONDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "MONDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 2,
+          "time": "08:20-09:00",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "ART",
+          "subjectName": "Art & Craft",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "SCI",
+          "subjectName": "Science",
+          "teacherId": "T1",
+          "teacherName": "Mr. Jean Baptiste"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 10,
+          "time": "15:10-15:50",
+          "session": "AFTERNOON",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        }
+      ]
+    },
+    "P2B": {
+      "classId": "P2B",
+      "className": "P2 B",
+      "morningCount": 8,
+      "afternoonCount": 8,
+      "totalPeriods": 16,
+      "lessons": [
+        {
+          "day": "MONDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "MONDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "MONDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "KIN",
+          "subjectName": "Kinyarwanda",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "SS",
+          "subjectName": "Social Studies",
+          "teacherId": "T3",
+          "teacherName": "Mr. Paul Kagame"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        }
+      ]
+    },
+    "P2C": {
+      "classId": "P2C",
+      "className": "P2 C",
+      "morningCount": 3,
+      "afternoonCount": 6,
+      "totalPeriods": 9,
+      "lessons": [
+        {
+          "day": "MONDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "MONDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "ENG",
+          "subjectName": "English",
+          "teacherId": "T2",
+          "teacherName": "Mrs. Marie Claire"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        }
+      ]
+    },
+    "P3A": {
+      "classId": "P3A",
+      "className": "P3 A",
+      "morningCount": 5,
+      "afternoonCount": 3,
+      "totalPeriods": 8,
+      "lessons": [
+        {
+          "day": "MONDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "MONDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 1,
+          "time": "07:40-08:20",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        }
+      ]
+    },
+    "P3B": {
+      "classId": "P3B",
+      "className": "P3 B",
+      "morningCount": 5,
+      "afternoonCount": 3,
+      "totalPeriods": 8,
+      "lessons": [
+        {
+          "day": "MONDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "MONDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "WEDNESDAY",
+          "period": 3,
+          "time": "09:00-09:40",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 4,
+          "time": "10:00-10:40",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 8,
+          "time": "13:40-14:20",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        }
+      ]
+    },
+    "P3C": {
+      "classId": "P3C",
+      "className": "P3 C",
+      "morningCount": 3,
+      "afternoonCount": 5,
+      "totalPeriods": 8,
+      "lessons": [
+        {
+          "day": "MONDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "MONDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "TUESDAY",
+          "period": 9,
+          "time": "14:30-15:10",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        },
+        {
+          "day": "THURSDAY",
+          "period": 7,
+          "time": "13:00-13:40",
+          "session": "AFTERNOON",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 5,
+          "time": "10:40-11:20",
+          "session": "MORNING",
+          "subjectId": "PE",
+          "subjectName": "Physical Education",
+          "teacherId": "T4",
+          "teacherName": "Ms. Sarah Williams"
+        },
+        {
+          "day": "FRIDAY",
+          "period": 6,
+          "time": "12:20-13:00",
+          "session": "AFTERNOON",
+          "subjectId": "RE",
+          "subjectName": "Religious Education",
+          "teacherId": "T5",
+          "teacherName": "Mr. John Doe"
+        }
+      ]
+    }
+  },
+  "validation": {
+    "teacherConflicts": 0,
+    "allClassesHave50Periods": false
+  }
+}

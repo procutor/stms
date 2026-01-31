@@ -185,6 +185,7 @@ async function main() {
     }
 
     // Create sample time slots with exact structure
+    // ENHANCED: For Secondary schools, P9-P10 (15:30-16:50) are reserved for CPD
     const timeSlots: Array<{
       day: string
       period: number
@@ -195,6 +196,7 @@ async function main() {
       session: string
       isBreak: boolean
       breakType?: string
+      isCPD?: boolean  // NEW: Mark CPD periods for Secondary schools
     }> = []
     
     const days: string[] = [
@@ -223,8 +225,9 @@ async function main() {
       { period: 8, start: '14:30', end: '15:10', session: 'AFTERNOON', isBreak: false },
       // Afternoon break
       { period: -3, start: '15:10', end: '15:30', session: 'AFTERNOON', isBreak: true, breakType: 'AFTERNOON_BREAK', name: 'AFTERNOON BREAK' },
-      { period: 9, start: '15:30', end: '16:10', session: 'AFTERNOON', isBreak: false },
-      { period: 10, start: '16:10', end: '16:50', session: 'AFTERNOON', isBreak: false },
+      // P9-P10: 15:30-16:50 - CPD for Secondary schools
+      { period: 9, start: '15:30', end: '16:10', session: 'AFTERNOON', isBreak: false, isCPD: true },
+      { period: 10, start: '16:10', end: '16:50', session: 'AFTERNOON', isBreak: false, isCPD: true },
       // End buffer
       { period: -4, start: '16:50', end: '16:55', session: 'AFTERNOON', isBreak: true, breakType: 'END_OF_DAY', name: 'END OF DAY' }
     ]
@@ -240,16 +243,23 @@ async function main() {
         const endTime = new Date()
         endTime.setHours(endHour, endMin, 0)
 
+        // CPD applies to P9-P10 (15:30-16:50) for:
+        // - All Secondary schools (S1-S6)
+        // - Upper Primary (P4-P6)
+        // Mark CPD in time slots for all schools, timetable generator will filter based on class level
+        const isCPDPeriod = (periodData.period === 9 || periodData.period === 10)
+        
         timeSlots.push({
           day: day,
           period: periodData.period,
           startTime: startTime,
           endTime: endTime,
           schoolId: school.id,
-          name: periodData.name || `P${periodData.period}`,
+          name: isCPDPeriod ? 'CPD' : (periodData.name || `P${periodData.period}`),
           session: periodData.session,
           isBreak: periodData.isBreak,
-          breakType: periodData.breakType
+          breakType: periodData.breakType,
+          isCPD: isCPDPeriod || false
         })
       }
     }
