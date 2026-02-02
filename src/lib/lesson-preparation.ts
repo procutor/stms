@@ -55,8 +55,8 @@ export class LessonPreparationService {
 
         const lessons: PreparedLesson[] = []
 
-        // Prepare lessons ONLY from per-class assignments
-        const teacherClassSubjects = await db.teacherClassSubject.findMany({
+        // Fetch ALL teacher-class-subject assignments
+        const allTeacherClassSubjects = await db.teacherClassSubject.findMany({
             where: { schoolId: this.schoolId },
             include: {
                 teacher: true,
@@ -65,7 +65,20 @@ export class LessonPreparationService {
             }
         })
 
-        const trainerClassModules = await db.trainerClassModule.findMany({
+        // Deduplicate in JavaScript - keep only first occurrence of each teacherId+subjectId+classId
+        const seenTeacherClassSubjects = new Set<string>()
+        const teacherClassSubjects: typeof allTeacherClassSubjects = []
+        
+        for (const assignment of allTeacherClassSubjects) {
+            const key = `${assignment.teacherId}:${assignment.subjectId}:${assignment.classId}`
+            if (!seenTeacherClassSubjects.has(key)) {
+                seenTeacherClassSubjects.add(key)
+                teacherClassSubjects.push(assignment)
+            }
+        }
+
+        // Fetch ALL trainer-class-module assignments
+        const allTrainerClassModules = await db.trainerClassModule.findMany({
             where: { schoolId: this.schoolId },
             include: {
                 trainer: true,
@@ -73,6 +86,41 @@ export class LessonPreparationService {
                 class: true
             }
         })
+
+        // Deduplicate in JavaScript - keep only first occurrence of each trainerId+moduleId+classId
+        const seenTrainerClassModules = new Set<string>()
+        const trainerClassModules: typeof allTrainerClassModules = []
+        
+        for (const assignment of allTrainerClassModules) {
+            const key = `${assignment.trainerId}:${assignment.moduleId}:${assignment.classId}`
+            if (!seenTrainerClassModules.has(key)) {
+                seenTrainerClassModules.add(key)
+                trainerClassModules.push(assignment)
+            }
+        }
+
+        console.log(`\n📚 LESSON PREPARATION DEBUG:`)
+        console.log(`   Total teacher-class-subject records: ${allTeacherClassSubjects.length}`)
+        console.log(`   After deduplication: ${teacherClassSubjects.length}`)
+        console.log(`   Total trainer-class-module records: ${allTrainerClassModules.length}`)
+        console.log(`   After deduplication: ${trainerClassModules.length}`)
+        
+        // Debug: Show all unique class-subject combinations
+        const classSubjectsMap = new Map<string, Set<string>>()
+        for (const assignment of teacherClassSubjects) {
+            const key = assignment.classId
+            if (!classSubjectsMap.has(key)) {
+                classSubjectsMap.set(key, new Set())
+            }
+            classSubjectsMap.get(key)!.add(assignment.subject.name)
+        }
+        
+        console.log(`\n📊 CLASS-SUBJECT ASSIGNMENTS:`)
+        for (const [classId, subjects] of classSubjectsMap) {
+            const className = teacherClassSubjects.find(a => a.classId === classId)?.class.name || 'Unknown'
+            console.log(`   ${className}: ${Array.from(subjects).join(', ')}`)
+        }
+        console.log(`\n📈 Total lessons to be scheduled: ${lessons.length}`)
 
         // Process Teacher-Class-Subject assignments (Primary/Secondary)
         for (const assignment of teacherClassSubjects) {

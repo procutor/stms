@@ -50,7 +50,7 @@ export default function GenerateTimetables() {
     const [result, setResult] = useState<GenerationResult | null>(null)
     const [regenerate, setRegenerate] = useState(false)
     const [incremental, setIncremental] = useState(false)
-    const [generatedTimetables, setGeneratedTimetables] = useState<{ className: string; entries: TimetableEntry[] }[]>([])
+    const [generatedTimetables, setGeneratedTimetables] = useState<{ className: string; entries: TimetableEntry[]; isTeacher?: boolean }[]>([])
 
     useEffect(() => {
         if (session?.user) {
@@ -137,7 +137,8 @@ export default function GenerateTimetables() {
                             teacher: t.teacher,
                             subject: t.subject,
                             module: t.module
-                        }))
+                        })),
+                        isTeacher: true  // NEW: mark as teacher timetable
                     }])
                 }
             } else {
@@ -148,14 +149,15 @@ export default function GenerateTimetables() {
 
                     if (schoolScope === 'all-teachers') {
                         // Group by teacher
-                        const teacherMap = new Map<string, { className: string; entries: TimetableEntry[] }>()
+                        const teacherMap = new Map<string, { className: string; entries: TimetableEntry[]; isTeacher: boolean }>()
                         timetables.forEach(entry => {
                             const teacherId = entry.teacherId
                             if (!teacherMap.has(teacherId)) {
                                 const teacherData = teachers.find(t => t.id === teacherId)
                                 teacherMap.set(teacherId, {
                                     className: teacherData?.name || 'Unknown Teacher',
-                                    entries: []
+                                    entries: [],
+                                    isTeacher: true
                                 })
                             }
                             teacherMap.get(teacherId)!.entries.push({
@@ -578,6 +580,8 @@ export default function GenerateTimetables() {
                                                                                 <SinglePDFExportButton
                                                                                     entries={timetable.entries}
                                                                                     title={`${timetable.className} Timetable`}
+                                                                                    isTeacherTimetable={timetable.isTeacher}
+                                                                                    className={(function(){const teachers=[...new Set(timetable.entries.map(e=>e.teacher?.name).filter(Boolean))];return teachers.slice(0,2).join(" + ")+(teachers.length>2?" +"+(teachers.length-2)+" more":"")||timetable.className})()}
                                                                                     onExportStart={() => console.log(`Exporting ${timetable.className}...`)}
                                                                                     onExportComplete={() => console.log(`${timetable.className} downloaded!`)}
                                                                                     onExportError={(error: any) => console.error(`Export failed for ${timetable.className}:`, error)}

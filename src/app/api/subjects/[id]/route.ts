@@ -179,7 +179,36 @@ export async function DELETE(
             )
         }
 
-        // Delete subject (this will cascade delete related records if configured)
+        // First, delete all related records to avoid foreign key constraint violations
+        // Delete timetables that reference this subject
+        await db.timetable.deleteMany({
+            where: {
+                subjectId: params.id
+            }
+        })
+        
+        // Delete teacher_class_subjects that reference this subject
+        await db.teacherClassSubject.deleteMany({
+            where: {
+                subjectId: params.id
+            }
+        })
+        
+        // Delete teacher_subjects that reference this subject
+        await db.teacherSubject.deleteMany({
+            where: {
+                subjectId: params.id
+            }
+        })
+        
+        // Delete class_subjects that reference this subject
+        await db.classSubject.deleteMany({
+            where: {
+                subjectId: params.id
+            }
+        })
+        
+        // Now delete the subject
         await db.subject.delete({
             where: {
                 id: params.id

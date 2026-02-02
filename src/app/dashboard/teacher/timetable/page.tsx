@@ -269,8 +269,18 @@ export default function TeacherPersonalTimetable() {
               {timetableEntries.length > 0 && (
                 <SinglePDFExportButton
                   entries={timetableEntries}
-                  title={`My Timetable - ${session.user.name}`}
+                  title={`Teacher Timetable - ${session.user.name}`}
                   schoolName={session.user.schoolName || undefined}
+                  className={
+                    (() => {
+                      // Extract all unique subjects and classes with counts
+                      const subjects = [...new Set(timetableEntries.map(e => e.subject?.name || e.module?.name).filter(Boolean))]
+                      const classes = [...new Set(timetableEntries.map(e => e.class?.name).filter(Boolean))]
+                      
+                      // Format as "X Subjects | Y Classes"
+                      return `${subjects.length} Subject${subjects.length !== 1 ? 's' : ''} | ${classes.length} Class${classes.length !== 1 ? 'es' : ''}`
+                    })()
+                  }
                   onExportStart={() => console.log('PDF export started')}
                   onExportComplete={() => console.log('PDF export completed')}
                   onExportError={(error) => console.error('PDF export failed:', error)}

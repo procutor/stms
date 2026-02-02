@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -48,7 +48,7 @@ model School {
 
   // Double-Shift Support Fields
   isDoubleShift     Boolean @default(false) // Whether this school operates in double-shift mode
-  doubleShiftConfig Json? // Configuration for double-shift: { morningStartTime, afternoonStartTime, breakDuration, minBreakBetweenShifts }
+  doubleShiftConfig String? // Configuration for double-shift: { morningStartTime, afternoonStartTime, breakDuration, minBreakBetweenShifts }
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

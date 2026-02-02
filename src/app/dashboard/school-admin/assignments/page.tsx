@@ -151,6 +151,10 @@ export default function AssignmentsPage() {
     const [selectedTrainerClass, setSelectedTrainerClass] = useState('')
     const [selectedModule, setSelectedModule] = useState('')
     const [searchTerm, setSearchTerm] = useState('')
+    const [selectedLevel, setSelectedLevel] = useState('')
+
+    // Get unique levels from classes
+    const classLevels = [...new Set(classes.map(cls => cls.level).filter(Boolean))].sort()
 
     // Edit states
     const [isEditing, setIsEditing] = useState(false)
@@ -833,13 +837,37 @@ export default function AssignmentsPage() {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Select Class</label>
                                 <select
                                     value={selectedClass}
-                                    onChange={(e) => setSelectedClass(e.target.value)}
+                                    onChange={(e) => {
+                                        setSelectedClass(e.target.value)
+                                        // Auto-set level based on class level
+                                        const selectedClassObj = classes.find(cls => cls.id === e.target.value)
+                                        if (selectedClassObj) {
+                                            setSelectedLevel(selectedClassObj.level || '')
+                                        }
+                                    }}
                                     className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                                 >
                                     <option value="">Choose a class...</option>
                                     {classes.map((cls) => (
                                         <option key={cls.id} value={cls.id}>
                                             {cls.name} ({cls.level})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Level Selection */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Select Level</label>
+                                <select
+                                    value={selectedLevel}
+                                    onChange={(e) => setSelectedLevel(e.target.value)}
+                                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                                >
+                                    <option value="">All Levels</option>
+                                    {classLevels.map((level) => (
+                                        <option key={level} value={level}>
+                                            {level}
                                         </option>
                                     ))}
                                 </select>
@@ -852,29 +880,36 @@ export default function AssignmentsPage() {
                                     {teacherSubjects.length === 0 ? (
                                         <p className="p-4 text-gray-500 text-sm">Select a teacher first to see available subjects</p>
                                     ) : (
-                                        teacherSubjects.map((ts) => (
-                                            <div key={ts.id} className="flex items-center p-3 border-b border-gray-200 last:border-b-0">
-                                                <input
-                                                    type="checkbox"
-                                                    id={`subject-${ts.subject.id}`}
-                                                    checked={selectedSubject === ts.subject.id}
-                                                    onChange={(e) => {
-                                                        if (e.target.checked) {
-                                                            setSelectedSubject(ts.subject.id)
-                                                        } else {
-                                                            setSelectedSubject('')
-                                                        }
-                                                    }}
-                                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                                />
-                                                <label htmlFor={`subject-${ts.subject.id}`} className="ml-3 text-sm">
-                                                    <div className="font-medium text-gray-900">{ts.subject.name}</div>
-                                                    <div className="text-gray-500">Code: {ts.subject.code} | Level: {ts.subject.level}</div>
-                                                </label>
-                                            </div>
-                                        ))
+                                        teacherSubjects
+                                            .filter(ts => !selectedLevel || ts.subject.level === selectedLevel)
+                                            .map((ts) => (
+                                                <div key={ts.id} className="flex items-center p-3 border-b border-gray-200 last:border-b-0">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`subject-${ts.subject.id}`}
+                                                        checked={selectedSubject === ts.subject.id}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                                setSelectedSubject(ts.subject.id)
+                                                            } else {
+                                                                setSelectedSubject('')
+                                                            }
+                                                        }}
+                                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                    />
+                                                    <label htmlFor={`subject-${ts.subject.id}`} className="ml-3 text-sm">
+                                                        <div className="font-medium text-gray-900">{ts.subject.name}</div>
+                                                        <div className="text-gray-500">Code: {ts.subject.code} | Level: {ts.subject.level}</div>
+                                                    </label>
+                                                </div>
+                                            ))
                                     )}
                                 </div>
+                                {selectedLevel && teacherSubjects.filter(ts => ts.subject.level !== selectedLevel).length > 0 && (
+                                    <p className="mt-2 text-sm text-gray-500">
+                                        Showing {teacherSubjects.filter(ts => ts.subject.level === selectedLevel).length} of {teacherSubjects.length} subjects for level {selectedLevel}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Action Buttons */}

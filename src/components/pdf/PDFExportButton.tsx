@@ -10,6 +10,8 @@ interface PDFExportButtonProps {
   title: string
   schoolName?: string
   className?: string
+  teacherName?: string
+  isTeacherTimetable?: boolean
   variant?: 'single' | 'batch'
   autoExport?: boolean
   onExportStart?: () => void
@@ -23,6 +25,8 @@ export default function PDFExportButton({
   title,
   schoolName,
   className = '',
+  teacherName,
+  isTeacherTimetable,
   variant = 'single',
   autoExport = false,
   onExportStart,
@@ -44,7 +48,8 @@ export default function PDFExportButton({
         title: title,
         schoolName: schoolName,
         includeLegend: true,
-        fileName: `${title.replace(/\\s+/g, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.pdf`
+        isTeacherTimetable: isTeacherTimetable,
+        fileName: `${title.replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.pdf`
       }
 
       setExportStatus('generating')
@@ -97,7 +102,11 @@ export default function PDFExportButton({
       case 'error':
         return 'Export Failed'
       default:
-        return variant === 'batch' ? 'Export All PDFs' : 'Export PDF'
+        if (variant === 'batch') return 'Export All PDFs'
+        if (teacherName && className) return `${className} - ${teacherName}`
+        if (teacherName) return teacherName
+        if (className) return className
+        return 'Export PDF'
     }
   }
 

@@ -286,35 +286,18 @@ export default function CreateSubject() {
                                     <label htmlFor="level" className="block text-sm font-medium text-gray-700">
                                         Level *
                                     </label>
-                                    <select
+                                    <input
+                                        type="text"
                                         name="level"
                                         id="level"
                                         required
                                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="e.g., P1, P2, S1, S2"
                                         value={formData.level}
                                         onChange={handleChange}
-                                    >
-                                        <option value="">Select Level</option>
-                                        <option value="P1">P1 (Primary 1)</option>
-                                        <option value="P2">P2 (Primary 2)</option>
-                                        <option value="P3">P3 (Primary 3)</option>
-                                        <option value="P4">P4 (Primary 4)</option>
-                                        <option value="P5">P5 (Primary 5)</option>
-                                        <option value="P6">P6 (Primary 6)</option>
-                                        <option value="S1">S1 (Secondary 1)</option>
-                                        <option value="S2">S2 (Secondary 2)</option>
-                                        <option value="S3">S3 (Secondary 3)</option>
-                                        <option value="S4">S4 (Secondary 4)</option>
-                                        <option value="S5">S5 (Secondary 5)</option>
-                                        <option value="S6">S6 (Secondary 6)</option>
-                                        <option value="L3">L3 (Lower 3)</option>
-                                        <option value="U3">U3 (Upper 3)</option>
-                                        <option value="U4">U4 (Upper 4)</option>
-                                        <option value="U5">U5 (Upper 5)</option>
-                                        <option value="U6">U6 (Upper 6)</option>
-                                    </select>
+                                    />
                                     <p className="mt-1 text-sm text-gray-500">
-                                        The level determines which classes this subject will be available for.
+                                        Enter the level for this subject (e.g., P1, P2, S1, S2).
                                     </p>
                                 </div>
 

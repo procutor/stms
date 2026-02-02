@@ -32,17 +32,19 @@ export async function POST(request: NextRequest) {
         const body = await request.json()
         const validatedData = subjectSchema.parse(body)
 
-        // Check if subject with same name already exists for this school
+        // Check if subject with same name and level already exists for this school
+        // The unique constraint is on [schoolId, name, level], so we check all three
         const existingSubject = await db.subject.findFirst({
             where: {
                 schoolId: session.user.schoolId!,
-                name: validatedData.name
+                name: validatedData.name,
+                level: validatedData.level
             }
         })
 
         if (existingSubject) {
             return NextResponse.json(
-                { error: 'Subject with this name already exists' },
+                { error: 'Subject with this name and level already exists' },
                 { status: 400 }
             )
         }
