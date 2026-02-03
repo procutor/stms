@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, cleanConnection } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 
 export async function GET(request: Request) {
@@ -10,6 +10,7 @@ export async function GET(request: Request) {
   // Test database connection first
   if (testConnection) {
     try {
+      await cleanConnection()
       await db.$queryRaw`SELECT 1`
       return NextResponse.json({
         status: 'connected',
@@ -44,6 +45,9 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Clean up any existing prepared statements
+    await cleanConnection()
+    
     // Test database connection and user lookup
     const user = await db.user.findUnique({
       where: { email },

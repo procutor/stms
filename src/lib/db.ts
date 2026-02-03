@@ -12,9 +12,19 @@ const prismaClientSingleton = () => {
             }
         },
         log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+        omitUndefined: true,
     })
 }
 
 export const db = globalForPrisma.prisma ?? prismaClientSingleton()
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
+
+// Helper to clean up prepared statements in serverless environments
+export async function cleanConnection() {
+    try {
+        await db.$executeRaw`DEALLOCATE ALL`
+    } catch (error) {
+        // Ignore errors from DEALLOCATE ALL as prepared statements may not exist
+    }
+}
