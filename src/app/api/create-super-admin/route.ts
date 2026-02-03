@@ -47,10 +47,10 @@ export async function POST(request: NextRequest) {
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating super admin:', error);
     return NextResponse.json(
-      { error: 'Failed to create super admin' },
+      { error: 'Failed to create super admin', details: error.message || String(error) },
       { status: 500 }
     );
   }
