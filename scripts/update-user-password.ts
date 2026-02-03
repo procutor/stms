@@ -1,28 +1,32 @@
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function main() {
-  const email = 'damascenetugireyezu@gmail.com';
-  const plainPassword = 'sEkamana@123';
-  
-  const hashedPassword = await bcrypt.hash(plainPassword, 10);
-  
+  const email = process.argv[2]
+  const newPassword = process.argv[3] || 'password123'
+
+  if (!email) {
+    console.log('Usage: npx ts-node scripts/update-user-password.ts <email> [newPassword]')
+    console.log('Example: npx ts-node scripts/update-user-password.ts admin@school.com mynewpassword')
+    process.exit(1)
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10)
+
   const user = await prisma.user.update({
     where: { email },
     data: { password: hashedPassword },
-  });
-  
-  console.log(`Updated password for user: ${email}`);
-  console.log(`New hash: ${hashedPassword}`);
+    select: { id: true, email: true, name: true, role: true }
+  })
+
+  console.log(`✅ Password updated for user: ${user.email}`)
+  console.log(`   Name: ${user.name}`)
+  console.log(`   Role: ${user.role}`)
+  console.log(`   New password: ${newPassword}`)
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .catch(console.error)
+  .finally(() => prisma.$disconnect())
