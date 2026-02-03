@@ -13,20 +13,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const hashedPassword = await bcrypt.hash(password, 12);
+
     // Check if user already exists
     const existingUser = await db.user.findUnique({
       where: { email }
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 400 }
-      );
+      // Update the existing user's password
+      const updatedUser = await db.user.update({
+        where: { email },
+        data: {
+          password: hashedPassword,
+          name: name || existingUser.name,
+          role: 'SUPER_ADMIN',
+          isActive: true,
+        }
+      });
+
+      return NextResponse.json({
+        message: 'Super admin password updated successfully',
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          role: updatedUser.role
+        }
+      });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-
+    // Create new user
     const user = await db.user.create({
       data: {
         email,
@@ -58,7 +75,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   return NextResponse.json({ 
-    message: 'Use POST to create a super admin',
+    message: 'Use POST to create or update a super admin',
     example: {
       email: 'damscenetugireye@gmail.com',
       password: 'sEkamana@123',
