@@ -581,7 +581,7 @@ export default function GenerateTimetables() {
                                                                                     entries={timetable.entries}
                                                                                     title={`${timetable.className} Timetable`}
                                                                                     isTeacherTimetable={timetable.isTeacher}
-                                                                                    className={(function(){const teachers=[...new Set(timetable.entries.map(e=>e.teacher?.name).filter(Boolean))];return teachers.slice(0,2).join(" + ")+(teachers.length>2?" +"+(teachers.length-2)+" more":"")||timetable.className})()}
+                                                                                    className={(function(){const teachers=Array.from(new Set(timetable.entries.map(e=>e.teacher?.name).filter(Boolean)));return teachers.slice(0,2).join(" + ")+(teachers.length>2?" +"+(teachers.length-2)+" more":"")||timetable.className})()}
                                                                                     onExportStart={() => console.log(`Exporting ${timetable.className}...`)}
                                                                                     onExportComplete={() => console.log(`${timetable.className} downloaded!`)}
                                                                                     onExportError={(error: any) => console.error(`Export failed for ${timetable.className}:`, error)}

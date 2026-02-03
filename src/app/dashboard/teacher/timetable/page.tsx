@@ -274,8 +274,8 @@ export default function TeacherPersonalTimetable() {
                   className={
                     (() => {
                       // Extract all unique subjects and classes with counts
-                      const subjects = [...new Set(timetableEntries.map(e => e.subject?.name || e.module?.name).filter(Boolean))]
-                      const classes = [...new Set(timetableEntries.map(e => e.class?.name).filter(Boolean))]
+                      const subjects = Array.from(new Set(timetableEntries.map(e => e.subject?.name || e.module?.name).filter(Boolean)))
+                      const classes = Array.from(new Set(timetableEntries.map(e => e.class?.name).filter(Boolean)))
                       
                       // Format as "X Subjects | Y Classes"
                       return `${subjects.length} Subject${subjects.length !== 1 ? 's' : ''} | ${classes.length} Class${classes.length !== 1 ? 'es' : ''}`

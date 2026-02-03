@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "target": "ES2017",
         "lib": [
             "dom",
             "dom.iterable",
@@ -10,12 +11,14 @@
         "strict": true,
         "noEmit": true,
         "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
         "module": "esnext",
         "moduleResolution": "bundler",
         "resolveJsonModule": true,
         "isolatedModules": true,
         "jsx": "preserve",
         "incremental": true,
+        "downlevelIteration": true,
         "plugins": [
             {
                 "name": "next"
@@ -32,7 +35,8 @@
         "next-env.d.ts",
         "**/*.ts",
         "**/*.tsx",
-        ".next/types/**/*.ts"
+        ".next/types/**/*.ts",
+        "src/types/nextauth.d.ts"
     ],
     "exclude": [
         "node_modules"

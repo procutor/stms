@@ -116,7 +116,7 @@ export class LessonPreparationService {
         }
         
         console.log(`\n📊 CLASS-SUBJECT ASSIGNMENTS:`)
-        for (const [classId, subjects] of classSubjectsMap) {
+        for (const [classId, subjects] of Array.from(classSubjectsMap.entries())) {
             const className = teacherClassSubjects.find(a => a.classId === classId)?.class.name || 'Unknown'
             console.log(`   ${className}: ${Array.from(subjects).join(', ')}`)
         }

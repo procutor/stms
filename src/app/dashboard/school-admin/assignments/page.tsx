@@ -154,7 +154,7 @@ export default function AssignmentsPage() {
     const [selectedLevel, setSelectedLevel] = useState('')
 
     // Get unique levels from classes
-    const classLevels = [...new Set(classes.map(cls => cls.level).filter(Boolean))].sort()
+    const classLevels = Array.from(new Set(classes.map(cls => cls.level).filter(Boolean))).sort()
 
     // Edit states
     const [isEditing, setIsEditing] = useState(false)

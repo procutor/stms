@@ -25,7 +25,7 @@ export interface TimetableEntry {
   }
 }
 
-export type ShiftType = 'MORNING' | 'AFTERNOON'
+export type ShiftType = 'MORNING' | 'AFTERNOON' | 'BOTH'
 
 export interface PDFExportOptions {
   title: string

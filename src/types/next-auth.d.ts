@@ -1,5 +1,11 @@
 import { DefaultSession } from 'next-auth'
 
+// Declare 'nextauth' as an alias for 'next-auth'
+declare module 'nextauth' {
+  export = NextAuth
+  export as namespace nextauth
+}
+
 declare module 'next-auth' {
   interface Session {
     user: {
